@@ -1,0 +1,43 @@
+```{r}
+#| label: fig-regovertimecum
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Cumulative number of unique patients, 2003-", global_year)
+#| fig-height: 6
+#| fig-width: 10
+
+tot <- rsdata %>%
+  filter(indexyear %in% paste(seq(2003, global_year, 1))) %>%
+  group_by(patientreference) %>%
+  arrange(indexdtm) %>%
+  slice(1) %>%
+  ungroup() %>%
+  count(indexyear) %>%
+  mutate(
+    cumn = cumsum(n),
+    indexyear = as.character(indexyear)
+  )
+
+
+p <- tot %>%
+  ggplot(aes(x = indexyear, y = cumn, group = 1)) +
+  geom_line(linewidth = 1.5, col = global_cols[1]) +
+  geom_point(size = 3.5, col = global_cols[1]) +
+  geom_text_repel(nudge_y = 8000, label = comma(tot$cumn)) +
+  theme_classic() +
+  theme(
+    text = element_text(size = global_figfontsize),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    panel.grid.major.y = element_line(
+      color = global_gridcolor,
+      linewidth = 0.5,
+      linetype = 1
+    )
+  ) +
+  scale_y_continuous(breaks = seq(0, 140000, 10000), limits = c(0, 140000), labels = comma_format(), expand = c(0.05, 0.05)) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+  labs(y = "Number of unique patients", x = "Year")
+
+p
+```

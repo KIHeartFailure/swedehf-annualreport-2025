@@ -1,0 +1,145 @@
+```{r}
+#| label: fig-tg
+#| cache: true
+#| cache.comments: false
+#| fig-cap: Coverage by county
+#| fig-subcap: !expr c(paste0("Prevalent (map), ", global_year), paste0("Incident (map), ", global_year - 1), paste0("Prevalent, ", global_year), paste0("Incident, ", global_year - 1))
+#| layout-ncol: 2
+#| layout-nrow: 2
+#| fig-height: 8
+#| fig-width: 7
+
+# Maps
+
+geo <- tg %>%
+  filter(type == "county") %>%
+  mutate(
+    p = round(p, 0),
+    p_cat = factor(case_when(
+      p <= 5 ~ 1,
+      p <= 10 ~ 2,
+      p <= 20 ~ 3,
+      p <= 30 ~ 4,
+      p <= 40 ~ 5,
+      p <= 50 ~ 6,
+      p <= 60 ~ 7,
+      p <= 70 ~ 8,
+      p <= 80 ~ 9,
+      p <= 90 ~ 10
+    ), levels = 1:10, labels = c("0-5%", "6-10%", "11-20%", "21-30%", "31-40%", "41-50%", "51-60%", "61-70%", "71-80%", "81-90%")),
+    regnums = str_sub(X1, 1, 2),
+    county_map = case_when(
+      name == "Sörmland" ~ "Södermanland",
+      name == "Jämtland Härjedalen" ~ "Jämtland",
+      name == "Örebro" ~ "Orebro",
+      TRUE ~ name
+    )
+  )
+
+swedenmap <- readr::read_rds(here("data/clean-data/gadm/gadm41_SWE_1_pk.rds"))
+
+map <- swedenmap %>%
+  terra::unwrap() %>%
+  sf::st_as_sf()
+
+mapfig <- left_join(map, geo, by = c("NAME_1" = "county_map"))
+
+ggplot(mapfig %>% filter(typetg == "Prevalent"), aes(fill = p_cat)) +
+  geom_sf() +
+  theme_void() +
+  theme(
+    text = element_text(size = 20, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  ) +
+  scale_fill_manual(values = c(global_cols, "lightgrey"))
+
+ggplot(mapfig %>% filter(typetg == "Incident"), aes(fill = p_cat)) +
+  geom_sf() +
+  theme_void() +
+  theme(
+    text = element_text(size = 20, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  ) +
+  scale_fill_manual(values = c(global_cols, "lightgrey"))
+
+# Bars
+tgfunc <- function(tgtype, ttype = "county") {
+  empty <- tibble(
+    n = 0,
+    tot = 0,
+    p = 0,
+    name = ""
+  )
+
+  unitdata <- tg %>%
+    filter(tgtype == typetg & type == ttype & tot >= 10) %>%
+    arrange(desc(p), name)
+
+  all <- bind_rows(
+    tg %>% filter(tgtype == typetg & name == "Sweden"),
+    empty,
+    unitdata
+  )
+
+  all <- all %>%
+    mutate(
+      row = n():1,
+      cols = case_when(
+        name == "Sweden" ~ global_cols[1],
+        name == "" ~ "white",
+        TRUE ~ global_cols[2],
+      )
+    ) %>%
+    mutate(
+      name = forcats::fct_inorder(name),
+      per = if_else(name != "", paste0(fn(p, dig = 0), "%"), ""),
+      ntot = if_else(name != "", paste0(comma(n), " of ", comma(tot)), ""),
+      unitpad = paste0(name, "  ", ntot)
+    )
+
+  maxrow <- nrow(all)
+
+  if (maxrow > 60) {
+    sizeuse <- 9
+    dodgenr <- 2
+    breaksx <- c(0, 25, 50, 75, 100)
+  }
+  if (maxrow <= 60 & maxrow > 30) {
+    sizeuse <- 9
+    dodgenr <- 1
+    breaksx <- seq(0, 100, 20)
+  }
+  if (maxrow <= 30) {
+    sizeuse <- 14
+    dodgenr <- 1
+    breaksx <- seq(0, 100, 20)
+  }
+
+  p <- ggplot(data = all, aes(x = row, y = p, fill = cols)) +
+    geom_bar(stat = "identity", show.legend = FALSE) +
+    coord_flip() +
+    scale_fill_manual(values = c(global_cols[c(1, 2)], "white")) +
+    theme_classic() +
+    theme(
+      text = element_text(size = global_figfontsize),
+      legend.position = "bottom",
+      legend.margin = margin(0, 100, 0, 0), # move legend to right otherwise outside fig
+      legend.title = element_blank(),
+      axis.ticks.y = element_blank(),
+      axis.title.y = element_blank(),
+      axis.text.y = element_text(hjust = 1, colour = "black", size = sizeuse),
+      axis.line.y = element_line(colour = "white")
+    ) +
+    scale_y_continuous(breaks = breaksx, limits = c(0, 100.01), expand = c(0, 0)) +
+    scale_x_continuous(breaks = c(all$row), labels = all$unitpad, expand = c(0, 0), sec.axis = dup_axis(labels = all$per), guide = guide_axis(n.dodge = dodgenr)) +
+    labs(y = "Proportion (%)")
+  p
+}
+
+tgfunc(tgtype = "Prevalent", ttype = "county")
+# tgfunc(tgtype = "Prevalent", ttype = "centre")
+tgfunc(tgtype = "Incident", ttype = "county")
+# tgfunc(tgtype = "Incident", ttype = "centre")
+```

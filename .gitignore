@@ -1,0 +1,38 @@
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+.Ruserdata
+.rds
+
+# RStudio files
+.Rproj.user/
+*.Rproj
+
+# knitr and R markdown default cache directories
+*_cache
+cache/
+
+# Temporary files created by R markdown
+*.utf8.md
+*.knit.md
+
+# Output files
+*.html
+*.pdf
+*.log
+
+# piture files
+*.png
+*.jpg
+
+TODO
+OLD
+checks/
+data/
+docs/
+output/
+
+nul

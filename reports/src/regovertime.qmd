@@ -1,0 +1,99 @@
+```{r}
+#| label: fig-regovertime
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Registration over time, ", global_year - 7, "-", global_year)
+#| fig-height: 6
+#| fig-width: 10
+
+tot <- rsdata %>%
+  filter(indexyear %in% paste(seq((global_year - 7), global_year, 1))) %>%
+  count(indexyear) %>%
+  mutate(
+    byvar = 5,
+    byvarname = "Total index and follow-up"
+  )
+
+totun <- rsdata %>%
+  filter(indexyear %in% paste(seq((global_year - 7), global_year, 1))) %>%
+  group_by(patientreference, indexyear) %>%
+  slice(1) %>%
+  ungroup() %>%
+  count(indexyear) %>%
+  mutate(
+    byvar = 6,
+    byvarname = "Unique patients"
+  )
+
+type <- rsdata %>%
+  filter(indexyear %in% paste(seq((global_year - 7), global_year, 1))) %>%
+  group_by(indexyear) %>%
+  count(ttype) %>%
+  mutate(
+    byvar = 1:n(),
+    byvarname = ttype
+  ) %>%
+  ungroup() %>%
+  select(-ttype)
+
+hfdur <- rsdata %>%
+  filter(indexyear %in% paste(seq((global_year - 7), global_year, 1)), ttype == "Index") %>%
+  filter(!is.na(hfdur)) %>%
+  group_by(indexyear) %>%
+  count(hfdur) %>%
+  mutate(
+    byvar = 1 + (1:n()) / 100,
+    byvarname = hfdur
+  ) %>%
+  ungroup() %>%
+  select(-hfdur)
+
+all <- bind_rows(tot, totun, type, hfdur) %>%
+  arrange(byvar) %>%
+  mutate(byvarname = fct_inorder(byvarname))
+
+p <- all %>%
+  ggplot(aes(x = indexyear, y = n, group = byvarname)) +
+  geom_line(aes(col = byvarname), linewidth = 1.5) +
+  geom_point(aes(col = byvarname), size = 3.5) +
+  scale_color_manual(values = global_cols) +
+  theme_classic() +
+  theme(
+    text = element_text(size = global_figfontsize),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    panel.grid.major.y = element_line(
+      color = global_gridcolor,
+      linewidth = 0.5,
+      linetype = 1
+    )
+  ) +
+  guides(color = guide_legend(ncol = 3, byrow = FALSE)) +
+  scale_x_discrete(expand = expansion(add = .1)) +
+  scale_y_continuous(breaks = seq(0, 20000, 2000), limits = c(0, 20000), labels = comma_format(), expand = c(0.05, 0.05)) +
+  labs(y = "Number of registrations", x = "Year")
+
+p
+```
+
+```{r}
+#| label: tbl-regovertime
+#| cache: true
+#| cache.comments: false
+#| dependson: fig-regovertime
+#| tbl-cap: !expr paste0("Registration over time, ", global_year - 7, "-", global_year)
+#| tbl-pos: "H"
+
+all <- all %>%
+  pivot_wider(names_from = indexyear, values_from = n) %>%
+  arrange(byvar) %>%
+  select(-byvar) %>%
+  mutate(byvarname = str_replace_all(byvarname, fixed("\u2265"), "$\\geq$")) %>%
+  mutate(across(where(is.numeric), comma))
+
+colnams <- colnames(all)
+colnams[1] <- ""
+colnames(all) <- colnams
+
+default_kable(all, escape = F, align = c("l", rep("c", ncol(all) - 1)))
+```

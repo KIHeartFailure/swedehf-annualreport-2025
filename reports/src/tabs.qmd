@@ -1,0 +1,293 @@
+```{r}
+#| label: varsfortab
+#| cache: true
+#| cache.comments: false
+
+tabvars <- c(
+  "vtype", "sex", "age", "hfdurimp", "ef_cat3", "FUNCTION_CLASS_NYHA", "LIFEQUALITY_SCORE",
+  "EARLIER_CARDIAC_ARREST", "REVASCULARIZATION", "HYPERTENSION",
+  "ATRIAL_FIBRILLATION_FLUTTER", "DIABETES",
+  "CHRONIC_LUNG_DISEASE", "HEART_VALVE_DISEASE",
+  "HEART_VALVE_SURGERY", "DILATED_CARDIOMYOPATHY",
+  "PRIMARY_ETIOLOGY",
+  "BP_SYSTOLIC", "BP_DIASTOLIC", "HEART_FREQUENCY",
+  "B_HB", "S_CREATININE",
+  "S_POTASSIUM", "S_SODIUM",
+  "NT_PROBNP", "S_FERRITIN", "P_TRANSFERRIN"
+)
+
+indexonlyvars <- c(
+  "EARLIER_CARDIAC_ARREST", "REVASCULARIZATION", "HYPERTENSION",
+  "ATRIAL_FIBRILLATION_FLUTTER", "DIABETES",
+  "CHRONIC_LUNG_DISEASE", "HEART_VALVE_DISEASE",
+  "HEART_VALVE_SURGERY", "DILATED_CARDIOMYOPATHY",
+  "PRIMARY_ETIOLOGY"
+)
+
+yearrsdata <- rsdata %>%
+  filter(indexyear == global_year)
+
+basetabfunc <- function(x, data, stratavar, catdig, contdig) {
+  tmp <- data %>%
+    filter(!is.na(!!sym(x)) & !is.na(!!sym(stratavar)))
+
+  cl <- class(data %>% pull(!!sym(x)))
+  if (cl %in% c("character", "factor")) {
+    out <- tmp %>%
+      group_by(!!sym(stratavar), .drop = F) %>%
+      count(!!sym(x), .drop = F) %>%
+      mutate(
+        out = paste0(n, " (", fn(n / sum(n) * 100, catdig), ")"),
+        out = if_else(n < 10, "<10", out),
+        out = if_else(x %in% indexonlyvars & ttype != "Index", NA, out),
+        level = !!sym(x)
+      ) %>%
+      ungroup() %>%
+      select(!!sym(stratavar), out, level) %>%
+      pivot_wider(names_from = !!sym(stratavar), values_from = out)
+
+    # if levels No, Yes only present Yes
+    levs <- out %>% pull(level)
+    nlevs <- length(levs)
+    if (nlevs == 2 & all(levs %in% c("No", "Yes"))) {
+      out <- out %>%
+        filter(level == "Yes") %>%
+        mutate(
+          var = x,
+          level = NA
+        )
+    } else {
+      out <- out %>%
+        mutate(
+          var = NA,
+        )
+      out <- out %>% add_row(
+        var = x,
+        .before = 1
+      )
+    }
+  } else if (cl %in% c("numeric")) {
+    if (length(contdig) > 1) {
+      if (any(contdig$vars %in% x)) {
+        contdig <- contdig %>%
+          filter(vars == x) %>%
+          pull(contdig)
+      } else {
+        contdig <- 0
+      }
+    }
+    tmp <- data %>%
+      filter(!is.na(!!sym(x)) & !is.na(!!sym(stratavar)))
+    out <- tmp %>%
+      group_by(!!sym(stratavar), .drop = F) %>%
+      reframe(
+        med = quantile(!!sym(x), na.rm = T, probs = c(0.5)),
+        q1 = quantile(!!sym(x), na.rm = T, probs = c(0.25)),
+        q3 = quantile(!!sym(x), na.rm = T, probs = c(0.75)),
+        n = n()
+      ) %>%
+      mutate(
+        out = paste0(fn(med, contdig), " [", fn(q1, contdig), "-", fn(q3, contdig), "]"),
+        out = if_else(n < 10, "<10", out)
+      ) %>%
+      ungroup() %>%
+      select(!!sym(stratavar), out) %>%
+      pivot_wider(names_from = !!sym(stratavar), values_from = out)
+
+    out <- out %>%
+      mutate(
+        var = x,
+        level = NA
+      )
+  } else {
+    stop("Unknown class in baseline table")
+  }
+}
+
+# numvarscheck <- rsdata %>%
+#  head(100) %>%
+#  select(!!!syms(tabvars)) %>%
+#  select(where(is.numeric))
+
+contdig <- tibble(vars = c("shf_potassium"), contdig = 1)
+catdig <- 0
+```
+
+```{r}
+#| label: tbl-tabchar
+#| cache: true
+#| cache.comments: false
+#| dependson: varsfortab
+#| tbl-cap: !expr paste0("Patient characteristics, ", global_year)
+#| tbl-pos: "H"
+
+tab <- yearrsdata %>%
+  count(ttype, .drop = F) %>%
+  mutate(n = paste0(n, " (", fn(n / sum(n) * 100, catdig), ")")) %>%
+  pivot_wider(names_from = ttype, values_from = n) %>%
+  mutate(
+    var = "N (%)",
+    level = NA
+  ) %>%
+  select(var, level, levels(rsdata %>% pull(ttype)))
+
+for (i in seq_along(tabvars)) {
+  tabtmp <- basetabfunc(tabvars[i], data = yearrsdata, stratavar = "ttype", catdig = catdig, contdig = contdig)
+  tab <<- bind_rows(tab, tabtmp)
+}
+
+tab <- tab %>%
+  mutate(
+    level = str_replace_all(level, fixed("HF duration "), ""),
+    level = str_replace_all(level, fixed(" mo at index"), ""),
+    var = if_else(!is.na(level) & !is.na(var),
+      paste0(var, " ", level),
+      coalesce(var, paste0("  ", level))
+    ),
+    var = case_when(
+      var == "n" ~ "Sweden",
+      var == "vtype" ~ "Centre type, n (%)",
+      var == "sex" ~ "Sex, n (%)",
+      var == "age" ~ "Age (years), median [Q1-Q3]",
+      var == "hfdurimp" ~ "HF duration at index (months), n (%)",
+      var == "ef_cat3" ~ "LVEF (%), n (%)",
+      var == "FUNCTION_CLASS_NYHA" ~ "NYHA class, n (%)",
+      var == "LIFEQUALITY_SCORE" ~ "QoL EQ-5D, median [Q1-Q3]",
+      var == "PRIMARY_ETIOLOGY" ~ "Primary etiology, n (%)",
+      var == "DIABETES" ~ "Diabetes, n (%)",
+      var == "EARLIER_CARDIAC_ARREST" ~ "Previous heart attack, n (%)",
+      var == "ATRIAL_FIBRILLATION_FLUTTER" ~ "Atrial fibrillation/flutter, n (%)",
+      var == "HYPERTENSION" ~ "Hypertension, n (%)",
+      var == "DILATED_CARDIOMYOPATHY" ~ "Dilated cardiomyopathy, n (%)",
+      var == "HEART_VALVE_DISEASE" ~ "Heart valve disease, n (%)",
+      var == "REVASCULARIZATION" ~ "Revascularization, n (%)",
+      var == "CHRONIC_LUNG_DISEASE" ~ "Chronic lung disease, n (%)",
+      var == "HEART_VALVE_SURGERY" ~ "Valve surgery, n (%)",
+      var == "BP_SYSTOLIC" ~ "Systolic blood pressure (mmHg), median [Q1-Q3]",
+      var == "BP_DIASTOLIC" ~ "Diastolic blood pressure (mmHg), median [Q1-Q3]",
+      var == "HEART_FREQUENCY" ~ "Heart rate (beats/min), median [Q1-Q3]",
+      var == "NT_PROBNP" ~ "NT-proBNP (pg/m/L), median [Q1-Q3]",
+      var == "S_CREATININE" ~ "Creatinine (umol/L), median [Q1-Q3]",
+      var == "S_POTASSIUM" ~ "Potassium (mmol/L), median [Q1-Q3]",
+      var == "S_SODIUM" ~ "Sodium (mmol/L), median [Q1-Q3]",
+      var == "B_HB" ~ "Hemoglobin (g/L), median [Q1-Q3]",
+      var == "P_TRANSFERRIN" ~ "Transferrin (%), median [Q1-Q3]",
+      var == "S_FERRITIN" ~ "Ferritin (ug/l), median [Q1-Q3]",
+      TRUE ~ var
+    ),
+    var = str_replace_all(var, fixed("\u2265"), "$\\geq$")
+  ) %>%
+  mutate(across(everything(), ~ str_replace_all(.x, fixed("(%)"), "(\\%)"))) %>%
+  select(-level)
+
+indent_rows <- tab %>%
+  mutate(
+    indent_rows = str_detect(var, "  "),
+    rows = row_number()
+  ) %>%
+  filter(indent_rows) %>%
+  pull(rows)
+
+colnames(tab) <- c("", levels(rsdata$ttype))
+
+default_kable(tab,
+  escape = FALSE,
+  align = c("l", rep("c", ncol(tab) - 1))
+) %>%
+  add_indent(indent_rows)
+```
+
+```{r}
+#| label: tbl-tabchar-sex
+#| cache: true
+#| cache.comments: false
+#| dependson: varsfortab
+#| tbl-cap: !expr paste0("Patient characteristics by sex, ", global_year)
+#| tbl-pos: "H"
+
+tab <- yearrsdata %>%
+  count(ttype, sex, .drop = F) %>%
+  mutate(n = comma(n)) %>%
+  pivot_wider(names_from = c(ttype, sex), values_from = n) %>%
+  mutate(
+    var = "N",
+    level = NA
+  ) %>%
+  select(var, level, everything())
+
+for (i in seq_along(tabvars)) {
+  tabtmp_fem <- basetabfunc(tabvars[i], data = yearrsdata %>% filter(sex == "Female"), stratavar = "ttype", catdig = catdig, contdig = contdig)
+  tabtmp_mal <- basetabfunc(tabvars[i], data = yearrsdata %>% filter(sex == "Male"), stratavar = "ttype", catdig = catdig, contdig = contdig)
+  tabtmp <- full_join(tabtmp_fem, tabtmp_mal, by = c("var", "level"), suffix = c("_Female", "_Male"))
+  tab <<- bind_rows(tab, tabtmp)
+}
+
+tab <- tab %>%
+  mutate(
+    level = str_replace_all(level, fixed("HF duration "), ""),
+    level = str_replace_all(level, fixed(" mo at index"), ""),
+    var = if_else(!is.na(level) & !is.na(var),
+      paste0(var, " ", level),
+      coalesce(var, paste0("  ", level))
+    ),
+    var = case_when(
+      var == "n" ~ "Sweden",
+      var == "vtype" ~ "Centre type, n (%)",
+      var == "sex" ~ "Sex, n (%)",
+      var == "age" ~ "Age (years), median [Q1-Q3]",
+      var == "hfdurimp" ~ "HF duration at index (months), n (%)",
+      var == "ef_cat3" ~ "LVEF (%), n (%)",
+      var == "FUNCTION_CLASS_NYHA" ~ "NYHA class, n (%)",
+      var == "LIFEQUALITY_SCORE" ~ "QoL EQ-5D, median [Q1-Q3]",
+      var == "PRIMARY_ETIOLOGY" ~ "Primary etiology, n (%)",
+      var == "DIABETES" ~ "Diabetes, n (%)",
+      var == "EARLIER_CARDIAC_ARREST" ~ "Previous heart attack, n (%)",
+      var == "ATRIAL_FIBRILLATION_FLUTTER" ~ "Atrial fibrillation/flutter, n (%)",
+      var == "HYPERTENSION" ~ "Hypertension, n (%)",
+      var == "DILATED_CARDIOMYOPATHY" ~ "Dilated cardiomyopathy, n (%)",
+      var == "HEART_VALVE_DISEASE" ~ "Heart valve disease, n (%)",
+      var == "REVASCULARIZATION" ~ "Revascularization, n (%)",
+      var == "CHRONIC_LUNG_DISEASE" ~ "Chronic lung disease, n (%)",
+      var == "HEART_VALVE_SURGERY" ~ "Valve surgery, n (%)",
+      var == "BP_SYSTOLIC" ~ "Systolic blood pressure (mmHg), median [Q1-Q3]",
+      var == "BP_DIASTOLIC" ~ "Diastolic blood pressure (mmHg), median [Q1-Q3]",
+      var == "HEART_FREQUENCY" ~ "Heart rate (beats/min), median [Q1-Q3]",
+      var == "NT_PROBNP" ~ "NT-proBNP (pg/m/L), median [Q1-Q3]",
+      var == "S_CREATININE" ~ "Creatinine (umol/L), median [Q1-Q3]",
+      var == "S_POTASSIUM" ~ "Potassium (mmol/L), median [Q1-Q3]",
+      var == "S_SODIUM" ~ "Sodium (mmol/L), median [Q1-Q3]",
+      var == "B_HB" ~ "Hemoglobin (g/L), median [Q1-Q3]",
+      var == "P_TRANSFERRIN" ~ "Transferrin (%), median [Q1-Q3]",
+      var == "S_FERRITIN" ~ "Ferritin (ug/l), median [Q1-Q3]",
+      TRUE ~ var
+    ),
+    var = str_replace_all(var, fixed("\u2265"), "$\\geq$")
+  ) %>%
+  mutate(across(everything(), ~ str_replace_all(.x, fixed("(%)"), "(\\%)"))) %>%
+  select(-level)
+
+indent_rows <- tab %>%
+  mutate(
+    indent_rows = str_detect(var, "  "),
+    rows = row_number()
+  ) %>%
+  filter(indent_rows) %>%
+  pull(rows)
+
+colnames(tab) <- c("", rep(levels(rsdata$sex), 4))
+
+myHeader <- c(" " = 1, " " = 2, " " = 2, " " = 2, " " = 2)
+names(myHeader) <- c(
+  " ", global_shortttype[1],
+  paste0(global_shortttype[2], " follow-up"),
+  paste0(global_shortttype[3], " follow-up"),
+  paste0(global_shortttype[4], " follow-up")
+)
+
+default_kable(tab,
+  escape = FALSE,
+  align = c("l", rep("c", ncol(tab) - 1))
+) %>%
+  add_indent(indent_rows) %>%
+  add_header_above(myHeader)
+```

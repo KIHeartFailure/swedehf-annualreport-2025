@@ -1,0 +1,27 @@
+% This is a combination of Pandoc templating and LaTeX
+% Pandoc templating https://pandoc.org/MANUAL.html#templates
+% See the README for help
+
+\rule{\textwidth}{1pt} % Thick horizontal rule
+\vspace{0.1\textheight} % Whitespace between the top rules and title
+
+\centering % Centre everything on the title page
+
+%%%%%% Cover image
+%\raggedleft % else it is right only and width is not 0
+$if(cover)$\includegraphics[width=10cm]{$cover$}$endif$
+
+\vspace{0.15\textheight}
+
+% Title and subtitle
+{\huge\bfseries\nohyphens{SWEDEHEART Annual Report 2024}}\\[2\baselineskip] 
+{\huge\bfseries\nohyphens{SwedeHF Appendix}}\\[2\baselineskip] 
+
+
+%use \vfill instead to get the space to fill flexibly	
+%\vspace{0.25\textheight} % Whitespace between the title block and the publisher
+
+\vspace{0.25\textheight}
+
+% Authors	
+\raggedright{Created: $date$}

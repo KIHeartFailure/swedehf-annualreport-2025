@@ -1,0 +1,150 @@
+```{r}
+#| label: fig-allki-sv
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Riket, alla ", nrow(qiinfo) -3, " kvalitetsindikatorer ",  global_year)
+#| fig-height: 6
+#| fig-width: 10
+#| out-width: "125%"
+#| out-height: "125%"
+
+summaryqifunchelper <- function(qi) {
+  if (!!sym(qi) == "qi_followreg3m") {
+    tmp <- rsdata %>%
+      filter(
+        indexdtm >= ymd(paste0(global_year - 1, "-07-01 - ")) &
+          indexdtm <= ymd(paste0(global_year, "-07-01"))
+      )
+  } else {
+    tmp <- rsdata %>%
+      filter(
+        indexdtm >= global_startdtm &
+          indexdtm <= global_stopdtm
+      )
+  }
+  tmp <- tmp %>%
+    filter(
+      !is.na(hfdurimp) &
+        ttype == qiinfo %>%
+          filter(qivar == qi) %>%
+          pull(timepoint)
+    )
+
+  tmp <- tmp %>%
+    filter(!is.na(!!sym(qi))) %>%
+    group_by(hfdurimp, .drop = F) %>%
+    count(!!sym(qi), .drop = F) %>%
+    mutate(
+      tot = sum(n),
+      percent = as.numeric(fn(n / tot * 100, 0))
+    ) %>%
+    ungroup() %>%
+    filter(!!sym(qi) == 1) %>%
+    mutate(qivar = qi) %>%
+    select(-!!sym(qi))
+}
+
+stat <- lapply(setdiff(qiinfo$qivar, c("qi_sglt2_ref", "qi_sglt2_mref", "qi_sglt2_pef")), summaryqifunchelper)
+
+stat2 <- bind_rows(stat)
+
+stat2 <- stat2 %>%
+  mutate(
+    hfdurimp = replace_na(hfdurimp, levels(stat2$hfdurimp)[2]),
+    cols = case_when(
+      hfdurimp == levels(stat2$hfdurimp)[1] ~ global_cols[1],
+      hfdurimp == levels(stat2$hfdurimp)[2] ~ global_cols[2]
+    )
+  )
+
+stat2 <- stat2 %>%
+  mutate(
+    ntot = paste0(comma(n), " av ", comma(tot)),
+    per = paste0(percent, "%"),
+    per = if_else(tot < 10, "", per),
+    ntot = if_else(tot < 10, "", ntot),
+    percent = if_else(tot < 10, 0, percent),
+    row = 1:n()
+  )
+
+stat2 <- left_join(stat2, qiinfo, by = "qivar")
+
+stat2$qishortname_sv <- forcats::fct_reorder(stat2$qishortname_sv, stat2$row)
+
+cexmy <- 0.9
+# c(bottom, left, top, right)
+par(mar = c(10.2, 4, 3.9, 0) + 0.1)
+
+b <- barplot(stat2$percent,
+  space = c(0, rep(c(0, 1), 14), 0),
+  axes = FALSE,
+  ylab = "Proportion (%)",
+  xlab = "",
+  col = stat2$cols,
+  border = "white",
+  # names.arg = rep(NA, nrow(qiinfo)),
+  cex.lab = cexmy,
+  ylim = c(0, 100),
+  las = 2, cex.names = cexmy
+)
+
+axis(2, seq(0, 100, 10), cex.axis = cexmy, las = 2)
+
+bplace <- b[c(seq(1, length(b), 2))]
+
+for (i in seq_along(bplace)) {
+  lines(
+    x = c(bplace[i] - 0.5, bplace[i] + 1.5),
+    y = c(qiinfo$ll[i], qiinfo$ll[i]) * 100, col = global_colslimit[2], lty = 2, lwd = 1
+  )
+  lines(
+    x = c(bplace[i] - 0.5, bplace[i] + 1.5),
+    y = c(qiinfo$ul[i], qiinfo$ul[i]) * 100, col = global_colslimit[1], lty = 2, lwd = 1
+  )
+}
+
+levhf <- levels(stat2$hfdurimp)
+levhf <- str_replace(levhf, "mo at index", "mån vid index")
+
+legend("topright", levhf, fill = global_cols[c(1, 2)], border = global_cols[c(1, 2)], bty = "n", cex = cexmy)
+
+axis(3,
+  at = b,
+  labels = stat2$ntot, line = -1, tick = FALSE, cex.axis = cexmy * 0.8, hadj = 0, gap.axis = -10000000, las = 2
+)
+
+axis(1,
+  at = bplace + 0.5,
+  labels = setdiff(qiinfo$qishortname_sv, c("SGLT2i (HFrEF)", "SGLT2i (HFmrEF)", "SGLT2i (HFpEF)")),
+  line = -0.5, tick = FALSE, cex.axis = cexmy, gap.axis = -10000000, las = 2
+)
+
+axis(1,
+  at = b[4] + (b[5] - b[4]) / 2,
+  labels = "Index", line = 6.7, tick = FALSE, cex.axis = cexmy, gap.axis = -10000000, las = 1
+)
+
+axis(1,
+  at = b[22] + (b[23] - b[22]) / 2,
+  labels = "Uppföljning 3 månader", line = 6.7, tick = FALSE, cex.axis = cexmy, gap.axis = -10000000, las = 1
+)
+
+posarrow <- -52.2
+adjmin <- 0
+arrows(b[1] + adjmin, posarrow, b[3], posarrow, xpd = TRUE, code = 1, length = 0.1)
+arrows(b[6], posarrow, b[8] - adjmin, posarrow, xpd = TRUE, code = 2, length = 0.1)
+
+arrows(b[11] + adjmin, posarrow, b[19], posarrow, xpd = TRUE, code = 1, length = 0.1)
+arrows(b[26], posarrow, b[30] - adjmin, posarrow, xpd = TRUE, code = 2, length = 0.1)
+
+legend("bottom",
+  inset = c(-0, -.67), xpd = NA,
+  legend = rev(global_labnamssv[2:3]),
+  lty = 2,
+  lwd = 1,
+  col = rev(global_colslimit),
+  bty = "n",
+  cex = cexmy,
+  horiz = TRUE
+)
+```

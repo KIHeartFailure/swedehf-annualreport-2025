@@ -1,0 +1,31 @@
+```{r}
+#| label: fig-tgtime
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Coverage, 2006-", global_year, " (prevalent)/", global_year -1 , " (incident)")
+#| fig-height: 6
+#| fig-width: 10
+
+p <- tg_overtime %>%
+  ggplot(aes(x = year, y = tg, group = tgtype)) +
+  geom_line(aes(col = tgtype), linewidth = 1.5) +
+  geom_point(aes(col = tgtype), size = 3.5) +
+  scale_color_manual(values = global_cols) +
+  theme_classic() +
+  theme(
+    text = element_text(size = global_figfontsize),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    panel.grid.major.y = element_line(
+      color = global_gridcolor,
+      linewidth = 0.5,
+      linetype = 1
+    )
+  ) +
+  guides(color = guide_legend(ncol = 3, byrow = FALSE)) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2), expand = expansion(add = 0.5)) +
+  scale_y_continuous(breaks = seq(0, 100, 10), limits = c(0, 100), expand = c(0.05, 0.05)) +
+  labs(y = "Coverage (%)", x = "Year")
+
+p
+```

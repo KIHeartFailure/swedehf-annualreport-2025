@@ -1,0 +1,52 @@
+---
+date: "Skapad: `r Sys.Date()`"
+cover: static/logo.png
+editor: source
+format:
+  pdf:
+    documentclass: scrartcl
+    template-partials:
+      - "static/before-body.tex"
+      - "static/_titlepage.tex"
+    include-in-header: 
+      - "static/in-header.tex"
+    toc: false
+    cap-location: top
+    number-sections: true
+    colorlinks: false
+    keep-tex: false
+    margin-left: 30mm
+    margin-right: 30mm
+    margin-top: 30mm
+    margin-bottom: 30mm
+knitr:
+  opts_chunk: 
+    dev: cairo_pdf
+    collapse: true
+    comment: "" 
+    echo: FALSE
+    include: TRUE
+    warning: FALSE
+    message: FALSE
+    fig.pos: "H"
+    fig.path: "../output/figs/"
+    fig.height: 6
+    fig.width: 10
+    R.options:
+      knitr.graphics.auto_pdf: true
+---
+
+```{r}
+#| label: set-up-load-data
+options(knitr.kable.NA = "")
+
+# load packages, globals and project specific functions
+source(here::here("setup/setup.R"))
+
+# load data
+load(here("data/clean-data/rsdata.RData"))
+```           
+
+\blandscape
+{{< include src/summaryqi_sv.qmd >}}
+\elandscape

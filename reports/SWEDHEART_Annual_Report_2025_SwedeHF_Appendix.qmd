@@ -1,0 +1,1485 @@
+---
+date: "Skapad: `r Sys.Date()`"
+cover: static/logo.png
+editor: source
+format:
+  pdf:
+    documentclass: scrartcl
+    template-partials:
+      - "static/before-body.tex"
+      - "static/_titlepage.tex"
+    include-in-header: 
+      - "static/in-header.tex"
+    toc: true
+    toc-depth: 3
+    toc-title: Contents
+    lof: true
+    lot: true
+    cap-location: top
+    number-sections: true
+    colorlinks: false
+    keep-tex: false
+    margin-left: 30mm
+    margin-right: 30mm
+    margin-top: 30mm
+    margin-bottom: 30mm
+knitr:
+  opts_chunk: 
+    dev: cairo_pdf
+    collapse: true
+    comment: "" 
+    echo: FALSE
+    include: TRUE
+    warning: FALSE
+    message: FALSE
+    fig.pos: "H"
+    fig.path: "../output/figs/"
+    fig.height: 6
+    fig.width: 6
+    R.options:
+      knitr.graphics.auto_pdf: true
+---
+
+```{r}
+#| label: set-up-load-data
+options(knitr.kable.NA = "")
+
+# load packages, globals and project specific functions
+source(here::here("setup/setup.R"))
+
+# load data
+load(here("data/clean-data/rsdata.RData"))
+load(here("data/clean-data/tg.RData"))
+```           
+
+\clearpage
+
+# Information and explanations
+
+The information presented is based on data reported in SwedeHF until 14th of January 2025. 
+
+The presentation is based on the date of the patients visit/admission.
+
+Index is defined as the first time a patient is registered in SwedeHF, not necessarily with newly diagnosed heart failure. Follow-up at 3 months can occur between 6 weeks and 6 months after index, with a mean time of 
+`r formatC(mean(rsdata %>% filter(ttype == "3-month follow-up", indexyear == global_year) %>% pull(diff_timeadmission), na.rm = T) / 30.5, format = "f", digits = 1, decimal.mark = ".")` months from index for follow-up visits during `r global_year`. 
+
+Yearly follow-up is divided into 1-year follow-up (from 6 months until 1.5 years after index), and 2+ years follow-up (from 1.5 years after index). The mean time from index until 1-year follow-up is 
+`r formatC(mean(rsdata %>% filter(ttype == "1-year follow-up", indexyear == global_year) %>% pull(diff_timeadmission), na.rm = T) / 365.25, format = "f", digits = 1, decimal.mark = ".")` years and for 2+ years follow-up
+`r formatC(mean(rsdata %>% filter(ttype == "2+-year follow-up", indexyear == global_year) %>% pull(diff_timeadmission), na.rm = T) / 365.25, format = "f", digits = 1, decimal.mark = ".")` years during `r global_year`. 
+
+In cases where multiple yearly follow-up visits exist all visits have been presented. 
+For 2+ years follow-up there are `r comma(rsdata %>% filter(ttype == "2+-year follow-up" & indexyear == global_year) %>% nrow())` observations for `r comma(rsdata %>% filter(ttype == "2+-year follow-up" & indexyear == global_year) %>% group_by(patientreference) %>% slice(1) %>% ungroup() %>% nrow())` 
+unique patients during `r global_year`.  
+
+Counties or centres with less than 10 observations in the denominator are not presented.
+
+The R code that has generated this report is found:
+
+https://github.com/KIHeartFailure/swedehf-annualreport-2024. 
+
+\clearpage
+
+# Coverage
+
+**Numerator prevalent coverage:** Individuals registered in SwedeHF, 18 years 
+of age at the time, alive as of the first of January of the current year and 
+registered in SwedeHF up to December of the year in question. 
+
+**Denominator prevalent coverage:** Individuals aged 18 and alive on January 1 of the current year, with a registration for heart failure, either in SwedeHF or in the National Patient Register. The definition of heart failure in the National Patient Register is a diagnosis of heart failure (I11.0, I13.0, I13.2, I25.5, I42.0, I42.6, I42.7, I50.0, I50.1, I50.9) in main position twice with at least 14 days between and with $\ge$ 2 of the following medications: ACEI/ARB/ARNI, beta-blockers, MRA or Loop diuretics within $\pm$ 120 days.
+
+*The coverage for `r global_year` is based on non-quality-reviewed data from the National Board of Health and Welfare. The definition of the coverage allows occurrence in SwedeHF after occurrence in the National Patient Register, which means that the coverage is not complete for `r global_year`. The coverage rate for `r global_year` should therefore be considered preliminary.*
+
+**Numerator incident coverage:** Individuals in SwedeHF, over 18 years of age and with first registration during the year in question or with first registration within 1 year of the first heart failure diagnosis in the National Patient Register.
+
+**Denominator incident coverage:** Individuals registered with heart failure for the first time during the current year, either in SwedeHF or in the National Patient Register. The definition of heart failure in the National Patient Register is a diagnosis of heart failure (I11.0, I13.0, I13.2, I25.5, I42.0, I42.6, I42.7, I50.0, I50.1, I50.9) in main position twice with at least 14 days between and with $\ge$ 2 of the following medications: ACEI/ARB/ARNI, beta-blockers, MRA or Loop diuretics within $\pm$ 120 days. 
+
+{{< include src/tg.qmd >}}
+
+{{< include src/tg_bar.qmd >}}
+
+\clearpage
+
+# Registration
+
+{{< include src/regovertime.qmd >}}
+
+{{< include src/regovertimecum.qmd >}}
+
+\clearpage
+
+# Patient characteristics
+
+{{< include src/tabs.qmd >}}
+
+\clearpage
+
+```{r}
+#| label: fig-desk
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Patient characteristics at index, ", global_year)
+#| fig-subcap:
+#|   - "Sex"
+#|   - "Age"
+#|   - "NYHA class"
+#|   - "LVEF"
+#| layout-ncol: 2
+#| layout-nrow: 2
+#| fig-height: 6
+#| fig-width: 6
+
+piefunc(var = "sex", type = c("Index"))
+piefunc(var = "age_cat", type = c("Index"))
+piefunc(var = "FUNCTION_CLASS_NYHA", type = c("Index"))
+piefunc(var = "ef_cat3", type = c("Index"))
+```          
+
+```{r}
+#| label: fig-enhetpie
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Centre type, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-ncol: 4
+#| layout-nrow: 1
+#| fig-height: 6
+#| fig-width: 6
+
+piefunc(var = "vtype", type = c("Index"))
+piefunc(var = "vtype", type = c("3-month follow-up"))
+piefunc(var = "vtype", type = c("1-year follow-up"))
+piefunc(var = "vtype", type = c("2+-year follow-up"))
+```     
+
+```{r}
+#| label: fig-enhetbar
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Centre type by region, ", global_year)
+#| fig-subcap:
+#|   - At index
+#|   - All registrations
+#| layout-ncol: 2
+#| layout-nrow: 1
+#| fig-height: 8
+#| fig-width: 7
+
+barfunc(var = "location", type = "Index")
+barfunc(var = "vtype", type = c("Index", "3-month follow-up", "1-year follow-up", "2+-year follow-up"))
+```     
+
+\clearpage
+
+\blandscape
+
+# Quality Indicators
+
+{{< include src/summaryqi.qmd >}}
+
+\elandscape
+
+```{r}
+#| cache: true
+qitmp <- "qi_lvef"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients where LVEF has been documented, either semi quantitatively or as a percentage, at index. 
+
+**Denominator:** All patients with an index registration.
+
+```{r}
+#| label: fig-lveftid
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp, ", ", global_year - 7, "-", global_year)
+#| fig-height: 7
+#| fig-width: 9
+#| out-width: "50%"
+#| out-height: "50%"
+timefunc(onlyindex = TRUE)
+```     
+
+```{r}
+#| label: fig-lvef
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), ", ", global_year)
+#| fig-subcap:
+#|   - Region
+#|   - Centre
+#| fig-height: 8
+#| fig-width: 7
+#| layout-nrow: 1
+#| layout-ncol: 2
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "Index")
+```  
+
+\clearpage
+
+```{r}
+qitmp <- "qi_ntprobnp"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients where NT-proBNP has been documented at index. For in-patient care, this can 
+be either at enrollment or after 24 hours.
+
+**Denominator:** All patients with an index registration.
+
+```{r}
+#| label: fig-nttid
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp, ", ", global_year - 7, "-", global_year)
+#| fig-height: 7
+#| fig-width: 9
+#| out-width: "50%"
+#| out-height: "50%"
+
+timefunc(onlyindex = TRUE)
+```     
+
+```{r}
+#| label: fig-nt
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), ", ", global_year)
+#| fig-subcap:
+#|   - Region
+#|   - Centre
+#| fig-height: 8
+#| fig-width: 7
+#| layout-nrow: 1
+#| layout-ncol: 2
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "Index")
+```     
+
+\clearpage
+
+```{r}
+qitmp <- "qi_nyha"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients where NYHA class I, II, III, or IV has been documented at index. 
+
+**Denominator:** All patients with an index registration.
+
+```{r}
+#| label: fig-nyhatid
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp, ", ", global_year - 7, "-", global_year)
+#| fig-height: 7
+#| fig-width: 9
+#| out-width: "50%"
+#| out-height: "50%"
+
+timefunc(onlyindex = TRUE)
+```     
+
+```{r}
+#| label: fig-nyha
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), ", ", global_year)
+#| fig-subcap:
+#|   - Region
+#|   - Centre
+#| fig-height: 8
+#| fig-width: 7
+#| layout-nrow: 1
+#| layout-ncol: 2
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "Index")
+```     
+
+\clearpage
+
+```{r}
+qitmp <- "qi_qol"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients where an estimated state of health 
+(quality of life score according to EQ-5D) has been assessed and documented at index.
+
+**Denominator:** All patients with an index registration.
+
+```{r}
+#| label: fig-qoltid
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp, ", ", global_year - 7, "-", global_year)
+#| fig-height: 7
+#| fig-width: 9
+#| out-width: "50%"
+#| out-height: "50%"
+
+timefunc(onlyindex = TRUE)
+```     
+
+```{r}
+#| label: fig-qol
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), ", ", global_year)
+#| fig-subcap:
+#|   - Region
+#|   - Centre
+#| fig-height: 8
+#| fig-width: 7
+#| layout-nrow: 1
+#| layout-ncol: 2
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "Index")
+```     
+
+\clearpage
+
+```{r}
+qitmp <- "qi_followreg3m"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients who have had a follow-up visit at 3 months (6 weeks - 6 months) after index performed and documented.
+
+**Denominator:** All index registrations where the patient is alive at 3 months.
+
+*In the figure `r paste0("Trends in ", qinametmp, ", ", global_year - 7, "-", global_year)` only index registrations until `r paste0(global_year, "-07-01")` are included in `r global_year`. In other presentations the time interval for the index is `r paste0(global_year - 1, "-07-01 - ", global_year, "-07-01")`.*
+
+```{r}
+#| label: fig-uppf3tid
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp, ", ", global_year - 7, "-", global_year)
+#| fig-height: 7
+#| fig-width: 9
+#| out-width: "50%"
+#| out-height: "50%"
+
+timefunc(onlyindex = TRUE)
+```     
+
+```{r}
+#| label: fig-uppf3
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), ", ", global_year - 1, "/", global_year)
+#| fig-subcap:
+#|   - Region
+#|   - Centre
+#| fig-height: 8
+#| fig-width: 7
+#| layout-nrow: 1
+#| layout-ncol: 2
+
+qifunc(type = "Index", unit = "region", startime = ymd(paste0(global_year - 1, "-07-01 - ")), stoptime = ymd(paste0(global_year, "-07-01")))
+qifunc(type = "Index", startime = ymd(paste0(global_year - 1, "-07-01 - ")), stoptime = ymd(paste0(global_year, "-07-01")))
+```     
+
+\clearpage
+
+```{r}
+qitmp <- "qi_tf"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients where both transferrin and ferritin have been assessed and documented.
+
+**Denominator:** All patients with a registration.
+
+*The quality indicator is defined at the 3-month follow-up.*
+
+```{r}
+#| label: fig-tftime
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp)
+#| fig-subcap: !expr c(paste0(global_year - 7, "-", global_year), paste0(global_year - 2, "-", global_year, ", Sweden"), paste0(global_year - 2, "-", global_year, ", Hospital"), paste0(global_year - 2, "-", global_year, ", Primary care"))
+#| fig-height: 7
+#| fig-width: 9
+#| layout-nrow: 2
+#| layout-ncol: 2
+
+timefunc()
+barsummary(unit = c("Hospital", "Primary care"))
+barsummary(unit = "Hospital")
+barsummary(unit = "Primary care")
+```     
+
+```{r}
+#| label: fig-tfregion
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by region, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "3-month follow-up", unit = "region")
+qifunc(type = "1-year follow-up", unit = "region")
+qifunc(type = "2+-year follow-up", unit = "region")
+```     
+
+```{r}
+#| label: fig-tfcentre
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by centre, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index")
+qifunc(type = "3-month follow-up")
+qifunc(type = "1-year follow-up")
+qifunc(type = "2+-year follow-up")
+```     
+
+\clearpage
+
+```{r}
+qitmp <- "qi_4"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients with LVEF < 40%, who are alive at discharge and 
+where ACEI/ARB/ARNI, beta-blockers, MRA and SGLT2 inhibitors have been prescribed.
+
+**Denominator:** Patients where LVEF < 40%, who are alive at discharge and 
+where information on the prescription of ACEI/ARB/ARNI, Beta-blockers, MRA and SGLT2 inhibitors 
+has been documented. If LVEF is missing, last observation is carried forward. 
+
+*The quality indicator is defined at the 3-month follow-up.*
+
+```{r}
+#| label: fig-4region
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by region, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "3-month follow-up", unit = "region")
+qifunc(type = "1-year follow-up", unit = "region")
+qifunc(type = "2+-year follow-up", unit = "region")
+```     
+
+```{r}
+#| label: fig-4centre
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by centre, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index")
+qifunc(type = "3-month follow-up")
+qifunc(type = "1-year follow-up")
+qifunc(type = "2+-year follow-up")
+```   
+
+\clearpage
+
+```{r}
+qitmp <- "qi_ras"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients with LVEF < 40%, who are alive at discharge and 
+where ACE inhibitors, ARBs or ARNIs has been prescribed.
+
+**Denominator:** Patients with LVEF < 40%, who are alive at discharge and 
+where information on the prescription of ACE inhibitors, ARBs 
+and ARNIs has been documented. If LVEF is missing, last observation is carried forward. 
+
+*The quality indicator is defined at the 3-month follow-up.*
+
+```{r}
+#| label: fig-rastime
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp)
+#| fig-subcap: !expr c(paste0(global_year - 7, "-", global_year), paste0(global_year - 2, "-", global_year, ", Sweden"), paste0(global_year - 2, "-", global_year, ", Hospital"), paste0(global_year - 2, "-", global_year, ", Primary care"))
+#| fig-height: 7
+#| fig-width: 9
+#| layout-nrow: 2
+#| layout-ncol: 2
+
+timefunc()
+barsummary(unit = c("Hospital", "Primary care"))
+barsummary(unit = "Hospital")
+barsummary(unit = "Primary care")
+```     
+
+```{r}
+#| label: fig-rasregion
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by region, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "3-month follow-up", unit = "region")
+qifunc(type = "1-year follow-up", unit = "region")
+qifunc(type = "2+-year follow-up", unit = "region")
+```     
+
+```{r}
+#| label: fig-rascentre
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by centre, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index")
+qifunc(type = "3-month follow-up")
+qifunc(type = "1-year follow-up")
+qifunc(type = "2+-year follow-up")
+```     
+
+\clearpage
+
+```{r}
+qitmp <- "qi_arni"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients with LVEF < 40%, who are alive at discharge and 
+where ARNIs have been prescribed.
+
+**Denominator:** Patients with LVEF < 40%, who are alive at discharge and 
+where information on the prescription of ARNIs has been documented. If LVEF is missing, last observation is carried forward. 
+
+*The quality indicator is defined at the 3-month follow-up.*
+
+```{r}
+#| label: fig-arnitime
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp)
+#| fig-subcap: !expr c(paste0(global_year - 7, "-", global_year), paste0(global_year - 2, "-", global_year, ", Sweden"), paste0(global_year - 2, "-", global_year, ", Hospital"), paste0(global_year - 2, "-", global_year, ", Primary care"))
+#| fig-height: 7
+#| fig-width: 9
+#| layout-nrow: 2
+#| layout-ncol: 2
+
+timefunc()
+barsummary(unit = c("Hospital", "Primary care"))
+barsummary(unit = "Hospital")
+barsummary(unit = "Primary care")
+```     
+
+```{r}
+#| label: fig-arniregion
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by region, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "3-month follow-up", unit = "region")
+qifunc(type = "1-year follow-up", unit = "region")
+qifunc(type = "2+-year follow-up", unit = "region")
+```     
+
+```{r}
+#| label: fig-arnicentre
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by centre, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index")
+qifunc(type = "3-month follow-up")
+qifunc(type = "1-year follow-up")
+qifunc(type = "2+-year follow-up")
+```     
+
+\clearpage
+
+```{r}
+qitmp <- "qi_bbl"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients with LVEF < 40%, who are alive at discharge and 
+where beta-blockers have been prescribed.
+
+**Denominator:** Patients where LVEF < 40%, who are alive at discharge 
+and where the prescription of beta-blockers has been documented. If LVEF is missing, last observation is carried forward. 
+
+*The quality indicator is defined at the 3-month follow-up.*
+
+```{r}
+#| label: fig-bbltime
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp)
+#| fig-subcap: !expr c(paste0(global_year - 7, "-", global_year), paste0(global_year - 2, "-", global_year, ", Sweden"), paste0(global_year - 2, "-", global_year, ", Hospital"), paste0(global_year - 2, "-", global_year, ", Primary care"))
+#| fig-height: 7
+#| fig-width: 9
+#| layout-nrow: 2
+#| layout-ncol: 2
+
+timefunc()
+barsummary(unit = c("Hospital", "Primary care"))
+barsummary(unit = "Hospital")
+barsummary(unit = "Primary care")
+```     
+
+```{r}
+#| label: fig-bblregion
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by region, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "3-month follow-up", unit = "region")
+qifunc(type = "1-year follow-up", unit = "region")
+qifunc(type = "2+-year follow-up", unit = "region")
+```     
+
+```{r}
+#| label: fig-bblcentre
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by centre, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index")
+qifunc(type = "3-month follow-up")
+qifunc(type = "1-year follow-up")
+qifunc(type = "2+-year follow-up")
+```     
+
+\clearpage
+
+```{r}
+qitmp <- "qi_mra"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients with LVEF < 40%, who are alive at discharge and 
+where MRA has been prescribed.
+
+**Denominator:** Patients where LVEF < 40%, who are alive at discharge and 
+where information on the prescription of MRA has been documented. If LVEF is missing, last observation is carried forward. 
+
+*The quality indicator is defined at the 3-month follow-up.*
+
+```{r}
+#| label: fig-mratime
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp)
+#| fig-subcap: !expr c(paste0(global_year - 7, "-", global_year), paste0(global_year - 2, "-", global_year, ", Sweden"), paste0(global_year - 2, "-", global_year, ", Hospital"), paste0(global_year - 2, "-", global_year, ", Primary care"))
+#| fig-height: 7
+#| fig-width: 9
+#| layout-nrow: 2
+#| layout-ncol: 2
+
+timefunc()
+barsummary(unit = c("Hospital", "Primary care"))
+barsummary(unit = "Hospital")
+barsummary(unit = "Primary care")
+```     
+
+```{r}
+#| label: fig-mraregion
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by region, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "3-month follow-up", unit = "region")
+qifunc(type = "1-year follow-up", unit = "region")
+qifunc(type = "2+-year follow-up", unit = "region")
+```     
+
+```{r}
+#| label: fig-mracentre
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by centre, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index")
+qifunc(type = "3-month follow-up")
+qifunc(type = "1-year follow-up")
+qifunc(type = "2+-year follow-up")
+```     
+
+\clearpage
+
+```{r}
+qitmp <- "qi_sglt2"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients who are alive at discharge and where SGLT2 inhibitors have been prescribed.
+
+**Denominator:** Patients who are alive at discharge and where 
+information on the prescription of SGLT2 inhibitors has been documented. 
+
+*The quality indicator is defined at the 3-month follow-up.*
+
+```{r}
+#| label: fig-sglt2time
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp)
+#| fig-subcap: !expr c(paste0(global_year - 3, "-", global_year), paste0(global_year - 2, "-", global_year, ", Sweden"), paste0(global_year - 2, "-", global_year, ", Hospital"), paste0(global_year - 2, "-", global_year, ", Primary care"))
+#| fig-height: 7
+#| fig-width: 9
+#| layout-nrow: 2
+#| layout-ncol: 2
+
+timefunc(starttime = global_year - 3)
+barsummary(unit = c("Hospital", "Primary care"))
+barsummary(unit = "Hospital")
+barsummary(unit = "Primary care")
+```     
+
+```{r}
+#| label: fig-sglt2region
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by region, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "3-month follow-up", unit = "region")
+qifunc(type = "1-year follow-up", unit = "region")
+qifunc(type = "2+-year follow-up", unit = "region")
+```     
+
+```{r}
+#| label: fig-sglt2centre
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by centre, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index")
+qifunc(type = "3-month follow-up")
+qifunc(type = "1-year follow-up")
+qifunc(type = "2+-year follow-up")
+```     
+
+\clearpage
+
+```{r}
+qitmp <- "qi_sglt2_ref"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients with LVEF < 40%, who are alive at discharge and 
+where SGLT2 inhibitors have been prescribed.
+
+**Denominator:** Patients where LVEF < 40%, who are alive at discharge and where 
+information on the prescription of SGLT2 inhibitors has been documented. If LVEF is missing, last observation is carried forward. 
+
+*The quality indicator is defined at the 3-month follow-up.*
+
+```{r}
+#| label: fig-sglt2reftime
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp)
+#| fig-subcap: !expr c(paste0(global_year - 3, "-", global_year), paste0(global_year - 2, "-", global_year, ", Sweden"), paste0(global_year - 2, "-", global_year, ", Hospital"), paste0(global_year - 2, "-", global_year, ", Primary care"))
+#| fig-height: 7
+#| fig-width: 9
+#| layout-nrow: 2
+#| layout-ncol: 2
+
+timefunc(starttime = global_year - 3)
+barsummary(unit = c("Hospital", "Primary care"))
+barsummary(unit = "Hospital")
+barsummary(unit = "Primary care")
+```     
+
+```{r}
+#| label: fig-sglt2refregion
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by region, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "3-month follow-up", unit = "region")
+qifunc(type = "1-year follow-up", unit = "region")
+qifunc(type = "2+-year follow-up", unit = "region")
+```     
+
+```{r}
+#| label: fig-sglt2refcentre
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by centre, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index")
+qifunc(type = "3-month follow-up")
+qifunc(type = "1-year follow-up")
+qifunc(type = "2+-year follow-up")
+```     
+
+\clearpage
+
+
+```{r}
+qitmp <- "qi_sglt2_mref"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients with LVEF 40-49%, who are alive at discharge and 
+where SGLT2 inhibitors have been prescribed.
+
+**Denominator:** Patients where LVEF 40-49%, who are alive at discharge and where 
+information on the prescription of SGLT2 inhibitors has been documented. If LVEF is missing, last observation is carried forward. 
+
+*The quality indicator is defined at the 3-month follow-up.*
+
+```{r}
+#| label: fig-sglt2mrefregion
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by region, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "3-month follow-up", unit = "region")
+qifunc(type = "1-year follow-up", unit = "region")
+qifunc(type = "2+-year follow-up", unit = "region")
+```     
+
+```{r}
+#| label: fig-sglt2mrefcentre
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by centre, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index")
+qifunc(type = "3-month follow-up")
+qifunc(type = "1-year follow-up")
+qifunc(type = "2+-year follow-up")
+```     
+
+\clearpage
+
+
+```{r}
+qitmp <- "qi_sglt2_pef"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients with LVEF $\geq$ 50%, who are alive at discharge and 
+where SGLT2 inhibitors have been prescribed.
+
+**Denominator:** Patients where LVEF $\geq$ 50%, who are alive at discharge and where 
+information on the prescription of SGLT2 inhibitors has been documented. If LVEF is missing, last observation is carried forward. 
+
+*The quality indicator is defined at the 3-month follow-up.*
+
+```{r}
+#| label: fig-sglt2pefregion
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by region, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "3-month follow-up", unit = "region")
+qifunc(type = "1-year follow-up", unit = "region")
+qifunc(type = "2+-year follow-up", unit = "region")
+```     
+
+```{r}
+#| label: fig-sglt2pefcentre
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by centre, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index")
+qifunc(type = "3-month follow-up")
+qifunc(type = "1-year follow-up")
+qifunc(type = "2+-year follow-up")
+```     
+
+\clearpage
+
+```{r}
+qitmp <- "qi_crt"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients with LVEF $\leq$ 35% (LVEF as a percentage documented) 
+or < 40% (semiquantitative LVEF documented) and with a CRT (with or without ICD) implanted.
+
+**Denominator:** Patients with LVEF $\leq$ 35% (LVEF as a percentage documented) 
+or < 40% (semiquantitative LVEF documented) and where information about device 
+has been documented. In addition to this, left bundle branch block (LBBB) 
+must be present and QRS duration must be > 130 ms. The denominator also 
+includes patients with CRT implanted, regardless of QRS duration and LBBB values or 
+if these are documented, which means that the proportion with CRT can be 
+overestimated. If LVEF, QRS duration or LBBB are missing, last observation is carried forward. 
+
+*The quality indicator is defined at the 3-month follow-up.*
+
+```{r}
+#| label: fig-crttime
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp)
+#| fig-subcap: !expr c(paste0(global_year - 7, "-", global_year), paste0(global_year - 2, "-", global_year, ", Sweden"), paste0(global_year - 2, "-", global_year, ", Hospital"), paste0(global_year - 2, "-", global_year, ", Primary care"))
+#| fig-height: 7
+#| fig-width: 9
+#| layout-nrow: 2
+#| layout-ncol: 2
+
+timefunc()
+barsummary(unit = c("Hospital", "Primary care"))
+barsummary(unit = "Hospital")
+barsummary(unit = "Primary care")
+```     
+
+```{r}
+#| label: fig-crtregion
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by region, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "3-month follow-up", unit = "region")
+qifunc(type = "1-year follow-up", unit = "region")
+qifunc(type = "2+-year follow-up", unit = "region")
+```     
+
+```{r}
+#| label: fig-crtcentre
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by centre, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index")
+qifunc(type = "3-month follow-up")
+qifunc(type = "1-year follow-up")
+qifunc(type = "2+-year follow-up")
+```     
+
+\clearpage
+
+```{r}
+qitmp <- "qi_icd"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients with LVEF $\leq$ 35% (LVEF as a percentage documented) 
+or < 40% (semiquantitative LVEF documented) and with a ICD (with or without CRT) implanted. 
+
+**Denominator:** Patients with LVEF $\leq$ 35% (LVEF as a percentage documented) or < 40% (semiquantitative LVEF documented) and where information about device has been documented. If LVEF is missing, last observation is carried forward. 
+
+*The quality indicator is defined at the 3-month follow-up.*
+
+```{r}
+#| label: fig-icdtime
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp)
+#| fig-subcap: !expr c(paste0(global_year - 7, "-", global_year), paste0(global_year - 2, "-", global_year, ", Sweden"), paste0(global_year - 2, "-", global_year, ", Hospital"), paste0(global_year - 2, "-", global_year, ", Primary care"))
+#| fig-height: 7
+#| fig-width: 9
+#| layout-nrow: 2
+#| layout-ncol: 2
+
+timefunc()
+barsummary(unit = c("Hospital", "Primary care"))
+barsummary(unit = "Hospital")
+barsummary(unit = "Primary care")
+```     
+
+```{r}
+#| label: fig-icdregion
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by region, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "3-month follow-up", unit = "region")
+qifunc(type = "1-year follow-up", unit = "region")
+qifunc(type = "2+-year follow-up", unit = "region")
+```     
+
+```{r}
+#| label: fig-icdcentre
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by centre, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index")
+qifunc(type = "3-month follow-up")
+qifunc(type = "1-year follow-up")
+qifunc(type = "2+-year follow-up")
+```    
+
+\clearpage
+
+```{r}
+qitmp <- "qi_fys"
+lltmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ll)
+ultmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(ul)
+qinametmp <- qiinfo %>%
+  filter(qivar == qitmp) %>%
+  pull(qiname)
+```             
+
+## Quality Indicator `r paste0(qiinfo %>% filter(qivar == qitmp) %>% pull(qino), ". ", firstcap(qinametmp))` 
+
+**Numerator:** Patients with participation in organized physical exercise for HF.
+
+**Denominator:** Patients where information about participation in organized 
+physical exercise for HF has been documented. 
+
+*The quality indicator is defined at the 3-month follow-up.*
+
+```{r}
+#| label: fig-fystime
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0("Trends in ", qinametmp)
+#| fig-subcap: !expr c(paste0(global_year - 7, "-", global_year), paste0(global_year - 2, "-", global_year, ", Sweden"), paste0(global_year - 2, "-", global_year, ", Hospital"), paste0(global_year - 2, "-", global_year, ", Primary care"))
+#| fig-height: 7
+#| fig-width: 9
+#| layout-nrow: 2
+#| layout-ncol: 2
+
+timefunc()
+barsummary(unit = c("Hospital", "Primary care"))
+barsummary(unit = "Hospital")
+barsummary(unit = "Primary care")
+```     
+
+```{r}
+#| label: fig-fysregion
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by region, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index", unit = "region")
+qifunc(type = "3-month follow-up", unit = "region")
+qifunc(type = "1-year follow-up", unit = "region")
+qifunc(type = "2+-year follow-up", unit = "region")
+```     
+
+```{r}
+#| label: fig-fyscentre
+#| cache: true
+#| cache.comments: false
+#| fig-cap: !expr paste0(firstcap(qinametmp), " by centre, ", global_year)
+#| fig-subcap:
+#|   - 'Index'
+#|   - '3-month follow-up'
+#|   - '1-year follow-up'
+#|   - '2+-year follow-up'
+#| layout-nrow: 2
+#| layout-ncol: 2
+#| fig-height: 8
+#| fig-width: 7
+
+qifunc(type = "Index")
+qifunc(type = "3-month follow-up")
+qifunc(type = "1-year follow-up")
+qifunc(type = "2+-year follow-up")
+```    
