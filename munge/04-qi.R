@@ -1,34 +1,34 @@
 rsdata <- rsdata %>%
   mutate(
-    qi_lvef = if_else(!is.na(LVEF_PERCENT) | !is.na(LVEF_SEMIQUANTITATIVE), 1, 0),
+    qi_lvef = if_else(!is.na(LVEF_use2), 1, 0),
     qi_ntprobnp = if_else(!is.na(NT_PROBNP) | !is.na(NT_PROBNP_24H), 1, 0),
     qi_nyha = if_else(!is.na(FUNCTION_CLASS_NYHA), 1, 0),
     qi_qol = if_else(!is.na(LIFEQUALITY_SCORE), 1, 0),
     qi_tf = if_else(!is.na(P_TRANSFERRIN) & !is.na(S_FERRITIN), 1, 0),
     qi_ras = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3imp) | ef_cat3imp != "HFrEF" ~ NA_real_,
+      is.na(ef_cat3) | ef_cat3 != "HFrEF" ~ NA_real_,
       is.na(ACE_INHIBITOR) | is.na(A2_BLOCKER_ARB) | is.na(ARNI) ~ NA_real_,
       ACE_INHIBITOR == "YES" | A2_BLOCKER_ARB == "YES" | ARNI == "YES" ~ 1,
       TRUE ~ 0
     ),
     qi_arni = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3imp) | ef_cat3imp != "HFrEF" ~ NA_real_,
+      is.na(ef_cat3) | ef_cat3 != "HFrEF" ~ NA_real_,
       is.na(ARNI) ~ NA_real_,
       ARNI == "YES" ~ 1,
       TRUE ~ 0
     ),
     qi_bbl = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3imp) | ef_cat3imp != "HFrEF" ~ NA_real_,
+      is.na(ef_cat3) | ef_cat3 != "HFrEF" ~ NA_real_,
       is.na(BETA_BLOCKER) ~ NA_real_,
       BETA_BLOCKER == "YES" ~ 1,
       TRUE ~ 0
     ),
     qi_mra = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3imp) | ef_cat3imp != "HFrEF" ~ NA_real_,
+      is.na(ef_cat3) | ef_cat3 != "HFrEF" ~ NA_real_,
       is.na(MRA) ~ NA_real_,
       MRA == "YES" ~ 1,
       TRUE ~ 0
@@ -41,21 +41,21 @@ rsdata <- rsdata %>%
     ),
     qi_sglt2_ref = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3imp) | ef_cat3imp != "HFrEF" ~ NA_real_,
+      is.na(ef_cat3) | ef_cat3 != "HFrEF" ~ NA_real_,
       is.na(SGLT2) ~ NA_real_,
       SGLT2 == "YES" ~ 1,
       TRUE ~ 0
     ),
     qi_sglt2_mref = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3imp) | ef_cat3imp != "HFmrEF" ~ NA_real_,
+      is.na(ef_cat3) | ef_cat3 != "HFmrEF" ~ NA_real_,
       is.na(SGLT2) ~ NA_real_,
       SGLT2 == "YES" ~ 1,
       TRUE ~ 0
     ),
     qi_sglt2_pef = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3imp) | ef_cat3imp != "HFpEF" ~ NA_real_,
+      is.na(ef_cat3) | ef_cat3 != "HFpEF" ~ NA_real_,
       is.na(SGLT2) ~ NA_real_,
       SGLT2 == "YES" ~ 1,
       TRUE ~ 0
@@ -67,7 +67,7 @@ rsdata <- rsdata %>%
     ),
     # crt
     qi_crt = case_when(
-      is.na(efcrt_catimp) | efcrt_catimp != "<40/<=35" ~ NA_real_,
+      is.na(efcrt_cat) | efcrt_cat != "<40/<=35" ~ NA_real_,
       # is.na(QRS_WIDTHimp) | is.na(LEFT_BRANCH_BLOCKimp) | is.na(EKG_RHYTHMimp) ~ NA_real_,
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
       is.na(DEVICE_THERAPY) ~ NA_real_,
@@ -78,14 +78,14 @@ rsdata <- rsdata %>%
 
     # icd
     qi_icd = case_when(
-      is.na(efcrt_catimp) | efcrt_catimp != "<40/<=35" ~ NA_real_,
+      is.na(efcrt_cat) | efcrt_cat != "<40/<=35" ~ NA_real_,
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
       is.na(DEVICE_THERAPY) ~ NA_real_,
       DEVICE_THERAPY %in% c("ICD", "CRT_D") ~ 1,
       TRUE ~ 0
     ),
     qi_fys = case_when(
-      # FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
+      FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
       is.na(PARTICIPATION_HF_TRAINING) ~ NA_real_,
       PARTICIPATION_HF_TRAINING == "YES" ~ 1,
       TRUE ~ 0
@@ -96,7 +96,7 @@ rsdata <- rsdata %>%
 # uppföljningar 3 mån
 
 follow <- rsdata %>%
-  filter(ttype == "3-month follow-up") %>%
+  filter(ttype == "1-80 days follow-up") %>%
   mutate(followup = 1) %>%
   select(patientreference, followup)
 
@@ -183,8 +183,8 @@ qiinfo <- qiinfo %>%
       qivar == "qi_sglt2_ref" ~ "prescribed SGLT2 inhibitor in patients with HFrEF",
       qivar == "qi_sglt2_mref" ~ "prescribed SGLT2 inhibitor in patients with HFmrEF",
       qivar == "qi_sglt2_pef" ~ "prescribed SGLT2 inhibitor in patients with HFpEF",
-      qivar == "qi_crt" ~ "CRT implanted in patients with LVEF <36/40%, LBBB and QRS >130ms",
-      qivar == "qi_icd" ~ "ICD implanted in patients with LVEF <36/40%",
+      qivar == "qi_crt" ~ "CRT implanted in patients with indication",
+      qivar == "qi_icd" ~ "ICD implanted in patients with indication",
       qivar == "qi_fys" ~ "participation in physical exercise for HF",
       qivar == "qi_followreg3m" ~ "follow-up visit performed and documented"
     ),
@@ -198,7 +198,7 @@ qiinfo <- qiinfo %>%
       qivar == "qi_arni" ~ 0.1,
       qivar == "qi_bbl" ~ 0.8,
       qivar == "qi_mra" ~ 0.6,
-      qivar == "qi_4" ~ 0.4,
+      qivar == "qi_4" ~ 0.6,
       qivar == "qi_sglt2" ~ 0.6,
       qivar == "qi_sglt2_ref" ~ 0.6,
       qivar == "qi_sglt2_mref" ~ 0.3,
@@ -218,7 +218,7 @@ qiinfo <- qiinfo %>%
       qivar == "qi_arni" ~ 0.3,
       qivar == "qi_bbl" ~ 0.9,
       qivar == "qi_mra" ~ 0.7,
-      qivar == "qi_4" ~ 0.5,
+      qivar == "qi_4" ~ 0.7,
       qivar == "qi_sglt2" ~ 0.7,
       qivar == "qi_sglt2_ref" ~ 0.7,
       qivar == "qi_sglt2_mref" ~ 0.4,
@@ -233,20 +233,20 @@ qiinfo <- qiinfo %>%
       qivar == "qi_ntprobnp" ~ "Index",
       qivar == "qi_nyha" ~ "Index",
       qivar == "qi_qol" ~ "Index",
-      qivar == "qi_tf" ~ "3-month follow-up",
-      qivar == "qi_ras" ~ "3-month follow-up",
-      qivar == "qi_arni" ~ "3-month follow-up",
-      qivar == "qi_bbl" ~ "3-month follow-up",
-      qivar == "qi_mra" ~ "3-month follow-up",
-      qivar == "qi_4" ~ "3-month follow-up",
-      qivar == "qi_sglt2" ~ "3-month follow-up",
-      qivar == "qi_sglt2_ref" ~ "3-month follow-up",
-      qivar == "qi_sglt2_mref" ~ "3-month follow-up",
-      qivar == "qi_sglt2_pef" ~ "3-month follow-up",
+      qivar == "qi_tf" ~ "1-80 days follow-up",
+      qivar == "qi_ras" ~ "1-80 days follow-up",
+      qivar == "qi_arni" ~ "1-80 days follow-up",
+      qivar == "qi_bbl" ~ "1-80 days follow-up",
+      qivar == "qi_mra" ~ "1-80 days follow-up",
+      qivar == "qi_4" ~ "1-80 days follow-up",
+      qivar == "qi_sglt2" ~ "1-80 days follow-up",
+      qivar == "qi_sglt2_ref" ~ "1-80 days follow-up",
+      qivar == "qi_sglt2_mref" ~ "1-80 days follow-up",
+      qivar == "qi_sglt2_pef" ~ "1-80 days follow-up",
       qivar == "qi_followreg3m" ~ "Index",
-      qivar == "qi_crt" ~ "3-month follow-up",
-      qivar == "qi_icd" ~ "3-month follow-up",
-      qivar == "qi_fys" ~ "3-month follow-up",
+      qivar == "qi_crt" ~ "1-80 days follow-up",
+      qivar == "qi_icd" ~ "1-80 days follow-up",
+      qivar == "qi_fys" ~ "1-80 days follow-up",
     ),
     qino = case_when(
       qivar == "qi_lvef" ~ 1,
@@ -260,12 +260,12 @@ qiinfo <- qiinfo %>%
       qivar == "qi_mra" ~ 11,
       qivar == "qi_4" ~ 7,
       qivar == "qi_sglt2" ~ 12,
-      qivar == "qi_sglt2_ref" ~ 13,
-      qivar == "qi_sglt2_mref" ~ 14,
-      qivar == "qi_sglt2_pef" ~ 15,
-      qivar == "qi_crt" ~ 16,
-      qivar == "qi_icd" ~ 17,
-      qivar == "qi_fys" ~ 18,
+      qivar == "qi_sglt2_ref" ~ 12.1,
+      qivar == "qi_sglt2_mref" ~ 12.2,
+      qivar == "qi_sglt2_pef" ~ 12.3,
+      qivar == "qi_crt" ~ 13,
+      qivar == "qi_icd" ~ 14,
+      qivar == "qi_fys" ~ 15,
       qivar == "qi_followreg3m" ~ 5
     )
   ) %>%

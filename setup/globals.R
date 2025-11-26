@@ -36,10 +36,10 @@ global_figfontsizesmall <- 10
 
 # year of report
 
-global_year <- 2024
+global_year <- 2025
 global_startdtm <- ymd(paste0(global_year, "-01-01"))
 global_stopdtm <- ymd(paste0(global_year, "-12-31"))
 
 global_labnams <- c("Year", "Upper target level", "Lower target level", "Unknown")
 global_labnamssv <- c("År", "Övre målnivå", "Lägre målnivå", "Okänd")
-global_shortttype <- c("Index", "3-month", "1-year", "2+-year")
+global_shortttype <- c("Index", "1-180 days", "1 year", "2+ years")

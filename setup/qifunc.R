@@ -1,4 +1,4 @@
-qifunc <- function(qi = qitmp, startime = global_startdtm, stoptime = global_stopdtm, type,
+qifunc <- function(qi = qitmp, startime = startimetmp, stoptime = stoptimetmp, type,
                    ll = lltmp, ul = ultmp, data = rsdata, unit = "centre") {
   tmp <- data %>%
     filter(ttype %in% type &

@@ -1,8 +1,6 @@
+:::: {#fig-regovertimecum}
+
 ```{r}
-#| label: fig-regovertimecum
-#| cache: true
-#| cache.comments: false
-#| fig-cap: !expr paste0("Cumulative number of unique patients, 2003-", global_year)
 #| fig-height: 6
 #| fig-width: 10
 
@@ -35,9 +33,13 @@ p <- tot %>%
       linetype = 1
     )
   ) +
-  scale_y_continuous(breaks = seq(0, 140000, 10000), limits = c(0, 140000), labels = comma_format(), expand = c(0.05, 0.05)) +
+  scale_y_continuous(breaks = seq(0, 160000, 10000), limits = c(0, 160000), labels = comma_format(), expand = c(0.05, 0.05)) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   labs(y = "Number of unique patients", x = "Year")
 
 p
 ```
+
+`{r} paste0("Cumulative number of unique patients, 2003-", global_year)`
+
+::::

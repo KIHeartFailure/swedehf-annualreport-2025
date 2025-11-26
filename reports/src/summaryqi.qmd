@@ -1,12 +1,10 @@
+:::: {#fig-allki}
+
 ```{r}
-#| label: fig-allki
-#| cache: true
-#| cache.comments: false
-#| fig-cap: !expr paste0("Sweden, all ", nrow(qiinfo) -3, " quality indicators ",  global_year)
 #| fig-height: 6
 #| fig-width: 10
-#| out-width: "125%"
-#| out-height: "125%"
+#| out-width: "85%"
+#| out-height: "85%"
 
 summaryqifunchelper <- function(qi) {
   if (!!sym(qi) == "qi_followreg3m") {
@@ -126,7 +124,7 @@ axis(1,
 
 axis(1,
   at = b[22] + (b[23] - b[22]) / 2,
-  labels = "3-month follow-up", line = 6.7, tick = FALSE, cex.axis = cexmy, gap.axis = -10000000, las = 1
+  labels = "1-180 days follow-up", line = 6.7, tick = FALSE, cex.axis = cexmy, gap.axis = -10000000, las = 1
 )
 
 posarrow <- -52.2
@@ -148,3 +146,5 @@ legend("bottom",
   horiz = TRUE
 )
 ```
+`{r} paste0("Sweden, all ", nrow(qiinfo) -3, " quality indicators ",  global_year)`
+::::

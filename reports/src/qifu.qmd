@@ -1,0 +1,109 @@
+:::: {#fig-tid layout-ncol=2 layout-nrow=2}
+::: {#fig-tid1}
+```{r}
+#| fig-height: 7
+#| fig-width: 9
+timefunc()
+```     
+`{r} paste0(startyeartmp, "-", global_year)`
+:::
+::: {#fig-tid2}
+```{r}
+#| fig-height: 7
+#| fig-width: 9
+barsummary(unit = c("Hospital", "Primary care"))
+```     
+`{r} paste0(global_year - 2, "-", global_year, ", Sweden")`
+:::
+::: {#fig-tid3}
+```{r}
+#| fig-height: 7
+#| fig-width: 9
+barsummary(unit = "Hospital")
+```     
+`{r} paste0(global_year - 2, "-", global_year, ", Hospital")`
+:::
+::: {#fig-tid4}
+```{r}
+#| fig-height: 7
+#| fig-width: 9
+barsummary(unit = "Primary care")
+```     
+`{r} paste0(global_year - 2, "-", global_year, ", Primary care")`
+:::
+`{r} paste0("Trends in ", qinametmp)`
+::::
+
+
+:::: {#fig-region layout-ncol=2 layout-nrow=2}
+::: {#fig-region1}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+qifunc(type = "Index", unit = "region")
+```     
+Index
+:::
+::: {#fig-region2}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+qifunc(type = "1-80 days follow-up", unit = "region")
+```     
+1-80 days follow-up
+:::
+::: {#fig-region3}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+qifunc(type = "1 year follow-up", unit = "region")
+```     
+1 year follow-up
+:::
+::: {#fig-region4}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+qifunc(type = "2+ year follow-up", unit = "region")
+```     
+2+ year follow-up
+:::
+`{r} paste0(firstcap(qinametmp), " by region, ", global_year)`
+::::
+
+
+:::: {#fig-centre layout-ncol=2 layout-nrow=2}
+::: {#fig-centre1}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+qifunc(type = "Index")
+```     
+Index
+:::
+::: {#fig-centre2}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+qifunc(type = "1-80 days follow-up")
+```     
+1-80 days follow-up
+:::
+::: {#fig-centre3}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+qifunc(type = "1 year follow-up")
+```     
+1 year follow-up
+:::
+::: {#fig-centre4}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+qifunc(type = "2+ year follow-up")
+```     
+2+ year follow-up
+:::
+`{r} paste0(firstcap(qinametmp), " by centre, ", global_year)`
+::::

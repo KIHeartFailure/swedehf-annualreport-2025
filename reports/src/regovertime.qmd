@@ -1,8 +1,7 @@
+:::: {#fig-regovertime}
+
 ```{r}
-#| label: fig-regovertime
-#| cache: true
-#| cache.comments: false
-#| fig-cap: !expr paste0("Registration over time, ", global_year - 7, "-", global_year)
+#| label: regovertime
 #| fig-height: 6
 #| fig-width: 10
 
@@ -69,20 +68,21 @@ p <- all %>%
     )
   ) +
   guides(color = guide_legend(ncol = 3, byrow = FALSE)) +
-  scale_x_discrete(expand = expansion(add = .1)) +
-  scale_y_continuous(breaks = seq(0, 20000, 2000), limits = c(0, 20000), labels = comma_format(), expand = c(0.05, 0.05)) +
+  scale_x_discrete(expand = expansion(add = .2)) +
+  scale_y_continuous(breaks = seq(0, 22000, 2000), limits = c(0, 22000), labels = comma_format(), expand = c(0.05, 0.05)) +
   labs(y = "Number of registrations", x = "Year")
 
 p
 ```
 
+`{r} paste0("Registration over time, ", global_year - 7, "-", global_year)`
+
+::::
+
+:::: {#tbl-regovertime tbl-pos="H"}
+
 ```{r}
-#| label: tbl-regovertime
-#| cache: true
-#| cache.comments: false
-#| dependson: fig-regovertime
-#| tbl-cap: !expr paste0("Registration over time, ", global_year - 7, "-", global_year)
-#| tbl-pos: "H"
+#| dependson: regovertime
 
 all <- all %>%
   pivot_wider(names_from = indexyear, values_from = n) %>%
@@ -97,3 +97,6 @@ colnames(all) <- colnams
 
 default_kable(all, escape = F, align = c("l", rep("c", ncol(all) - 1)))
 ```
+
+`{r} paste0("Registration over time, ", global_year - 7, "-", global_year)`
+::::

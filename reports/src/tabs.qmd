@@ -113,13 +113,12 @@ contdig <- tibble(vars = c("shf_potassium"), contdig = 1)
 catdig <- 0
 ```
 
+:::: {#tbl-tabchar tbl-pos="H"}
+
 ```{r}
-#| label: tbl-tabchar
 #| cache: true
 #| cache.comments: false
 #| dependson: varsfortab
-#| tbl-cap: !expr paste0("Patient characteristics, ", global_year)
-#| tbl-pos: "H"
 
 tab <- yearrsdata %>%
   count(ttype, .drop = F) %>%
@@ -197,13 +196,16 @@ default_kable(tab,
   add_indent(indent_rows)
 ```
 
+`{r} paste0("Patient characteristics, ", global_year)`
+
+::::
+
+:::: {#tbl-tabchar-sex tbl-pos="H"}
+
 ```{r}
-#| label: tbl-tabchar-sex
 #| cache: true
 #| cache.comments: false
 #| dependson: varsfortab
-#| tbl-cap: !expr paste0("Patient characteristics by sex, ", global_year)
-#| tbl-pos: "H"
 
 tab <- yearrsdata %>%
   count(ttype, sex, .drop = F) %>%
@@ -291,3 +293,7 @@ default_kable(tab,
   add_indent(indent_rows) %>%
   add_header_above(myHeader)
 ```
+
+`{r} paste0("Patient characteristics by sex, ", global_year)`
+
+::::

@@ -1,4 +1,4 @@
-timefunc <- function(qi = qitmp, starttime = global_year - 7, stoptime = global_year, ll = lltmp, ul = ultmp,
+timefunc <- function(qi = qitmp, starttime = startyeartmp, stoptime = global_year, ll = lltmp, ul = ultmp,
                      data = rsdata, onlyindex = FALSE) {
   tmp <- data %>%
     filter(indexyear %in% paste(seq(starttime, stoptime, 1)) &

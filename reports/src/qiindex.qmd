@@ -1,0 +1,29 @@
+:::: {#fig-tid layout-ncol=2}
+```{r}
+#| fig-height: 7
+#| fig-width: 9
+timefunc(onlyindex = TRUE)
+```     
+`{r} paste0("Trends in ", qinametmp, ", ", global_year - 7, "-", global_year)`
+::::
+
+:::: {#fig-rc layout-ncol=2 layout-nrow=1}
+::: {#fig-rc1}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+qifunc(type = "Index", unit = "region")
+```  
+Region
+:::
+
+::: {#fig-rc2}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+qifunc(type = "Index")
+```  
+Centre
+:::
+`{r} paste0(firstcap(qinametmp), ", ", global_year)`
+::::

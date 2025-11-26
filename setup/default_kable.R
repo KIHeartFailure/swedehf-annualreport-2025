@@ -17,6 +17,7 @@ default_kable <- function(tab, font_size = NULL, scale_down = TRUE,
   knitr::kable(tab,
     booktabs = TRUE,
     linesep = "",
+    format = "latex",
     row.names = row.names,
     align = align,
     ...
