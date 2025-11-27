@@ -52,7 +52,7 @@ timefunc <- function(qi = qitmp, starttime = startyeartmp, stoptime = global_yea
         linetype = 1
       )
     ) +
-    scale_x_discrete(expand = expansion(add = .1)) +
+    scale_x_discrete(expand = expansion(add = .15)) +
     scale_y_continuous(breaks = seq(0, 100, 10), limits = c(0, 100), expand = c(0.05, 0.05)) +
     labs(y = "Proportion (%)", x = "Year")
   p
