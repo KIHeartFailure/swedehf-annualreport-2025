@@ -15,6 +15,7 @@ tabvars <- c(
   "S_POTASSIUM", "S_SODIUM",
   "NT_PROBNP", "S_FERRITIN", "P_TRANSFERRIN"
 )
+tabvars_nosex <- setdiff(tabvars, "sex")
 
 indexonlyvars <- c(
   "EARLIER_CARDIAC_ARREST", "REVASCULARIZATION", "HYPERTENSION",
@@ -209,7 +210,7 @@ default_kable(tab,
 
 tab <- yearrsdata %>%
   count(ttype, sex, .drop = F) %>%
-  mutate(n = comma(n)) %>%
+  mutate(n = paste0(n)) %>%
   pivot_wider(names_from = c(ttype, sex), values_from = n) %>%
   mutate(
     var = "N",
@@ -217,9 +218,15 @@ tab <- yearrsdata %>%
   ) %>%
   select(var, level, everything())
 
-for (i in seq_along(tabvars)) {
-  tabtmp_fem <- basetabfunc(tabvars[i], data = yearrsdata %>% filter(sex == "Female"), stratavar = "ttype", catdig = catdig, contdig = contdig)
-  tabtmp_mal <- basetabfunc(tabvars[i], data = yearrsdata %>% filter(sex == "Male"), stratavar = "ttype", catdig = catdig, contdig = contdig)
+for (i in seq_along(tabvars_nosex)) {
+  tabtmp_fem <- basetabfunc(tabvars_nosex[i],
+    data = yearrsdata %>% filter(sex == "Female"), stratavar = "ttype",
+    catdig = catdig, contdig = contdig
+  )
+  tabtmp_mal <- basetabfunc(tabvars_nosex[i],
+    data = yearrsdata %>% filter(sex == "Male"), stratavar = "ttype",
+    catdig = catdig, contdig = contdig
+  )
   tabtmp <- full_join(tabtmp_fem, tabtmp_mal, by = c("var", "level"), suffix = c("_Female", "_Male"))
   tab <<- bind_rows(tab, tabtmp)
 }

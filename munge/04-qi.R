@@ -1,34 +1,34 @@
 rsdata <- rsdata %>%
   mutate(
-    qi_lvef = if_else(!is.na(LVEF_use2), 1, 0),
+    qi_lvef = if_else(!is.na(ef_cat3), 1, 0),
     qi_ntprobnp = if_else(!is.na(NT_PROBNP) | !is.na(NT_PROBNP_24H), 1, 0),
     qi_nyha = if_else(!is.na(FUNCTION_CLASS_NYHA), 1, 0),
     qi_qol = if_else(!is.na(LIFEQUALITY_SCORE), 1, 0),
     qi_tf = if_else(!is.na(P_TRANSFERRIN) & !is.na(S_FERRITIN), 1, 0),
     qi_ras = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3) | ef_cat3 != "HFrEF" ~ NA_real_,
+      is.na(ef_cat3imp) | ef_cat3imp != "HFrEF" ~ NA_real_,
       is.na(ACE_INHIBITOR) | is.na(A2_BLOCKER_ARB) | is.na(ARNI) ~ NA_real_,
       ACE_INHIBITOR == "YES" | A2_BLOCKER_ARB == "YES" | ARNI == "YES" ~ 1,
       TRUE ~ 0
     ),
     qi_arni = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3) | ef_cat3 != "HFrEF" ~ NA_real_,
+      is.na(ef_cat3imp) | ef_cat3imp != "HFrEF" ~ NA_real_,
       is.na(ARNI) ~ NA_real_,
       ARNI == "YES" ~ 1,
       TRUE ~ 0
     ),
     qi_bbl = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3) | ef_cat3 != "HFrEF" ~ NA_real_,
+      is.na(ef_cat3imp) | ef_cat3imp != "HFrEF" ~ NA_real_,
       is.na(BETA_BLOCKER) ~ NA_real_,
       BETA_BLOCKER == "YES" ~ 1,
       TRUE ~ 0
     ),
     qi_mra = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3) | ef_cat3 != "HFrEF" ~ NA_real_,
+      is.na(ef_cat3imp) | ef_cat3imp != "HFrEF" ~ NA_real_,
       is.na(MRA) ~ NA_real_,
       MRA == "YES" ~ 1,
       TRUE ~ 0
@@ -41,21 +41,21 @@ rsdata <- rsdata %>%
     ),
     qi_sglt2_ref = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3) | ef_cat3 != "HFrEF" ~ NA_real_,
+      is.na(ef_cat3imp) | ef_cat3imp != "HFrEF" ~ NA_real_,
       is.na(SGLT2) ~ NA_real_,
       SGLT2 == "YES" ~ 1,
       TRUE ~ 0
     ),
     qi_sglt2_mref = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3) | ef_cat3 != "HFmrEF" ~ NA_real_,
+      is.na(ef_cat3imp) | ef_cat3imp != "HFmrEF" ~ NA_real_,
       is.na(SGLT2) ~ NA_real_,
       SGLT2 == "YES" ~ 1,
       TRUE ~ 0
     ),
     qi_sglt2_pef = case_when(
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
-      is.na(ef_cat3) | ef_cat3 != "HFpEF" ~ NA_real_,
+      is.na(ef_cat3imp) | ef_cat3imp != "HFpEF" ~ NA_real_,
       is.na(SGLT2) ~ NA_real_,
       SGLT2 == "YES" ~ 1,
       TRUE ~ 0
@@ -67,7 +67,7 @@ rsdata <- rsdata %>%
     ),
     # crt
     qi_crt = case_when(
-      is.na(efcrt_cat) | efcrt_cat != "<40/<=35" ~ NA_real_,
+      is.na(efcrt_catimp) | efcrt_catimp != "<40/<=35" ~ NA_real_,
       # is.na(QRS_WIDTHimp) | is.na(LEFT_BRANCH_BLOCKimp) | is.na(EKG_RHYTHMimp) ~ NA_real_,
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
       is.na(DEVICE_THERAPY) ~ NA_real_,
@@ -78,7 +78,7 @@ rsdata <- rsdata %>%
 
     # icd
     qi_icd = case_when(
-      is.na(efcrt_cat) | efcrt_cat != "<40/<=35" ~ NA_real_,
+      is.na(efcrt_catimp) | efcrt_catimp != "<40/<=35" ~ NA_real_,
       FOLLOWUP_UNIT == "DECEASED" ~ NA_real_,
       is.na(DEVICE_THERAPY) ~ NA_real_,
       DEVICE_THERAPY %in% c("ICD", "CRT_D") ~ 1,

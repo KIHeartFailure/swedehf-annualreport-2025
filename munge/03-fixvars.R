@@ -5,52 +5,9 @@ rsdata <- left_join(
   by = "patientreference"
 )
 
-# fix ef
-
 rsdata <- rsdata %>%
   mutate(
     indexdtm = coalesce(DATE_FOR_ADMISSION, VISIT_DATE),
-    LVEF_tmp = case_when(
-      LVEF_PERCENT >= 50 ~ "NORMAL",
-      (LVEF_PERCENT >= 40 & version_DIAGNOSTIC == "1.0.0" | LVEF_PERCENT >= 41 & version_DIAGNOSTIC == "2.0.0") ~ "MILD",
-      LVEF_PERCENT >= 30 ~ "MODERATE",
-      LVEF_PERCENT < 30 ~ "SEVERE"
-    ),
-    LVEF_use = coalesce(LVEF_tmp, LVEF_SEMIQUANTITATIVE, LVEF_SEMIQUANTITATIVE_V2),
-    LVEFcrt_tmp = coalesce(LVEF_SEMIQUANTITATIVE, LVEF_SEMIQUANTITATIVE_V2),
-    LVEFcrt_tmp = case_when(
-      LVEFcrt_tmp %in% c("NORMAL", "MILD") | LVEF_PERCENT > 35 ~ ">=40/>35",
-      LVEFcrt_tmp %in% c("MODERATE", "SEVERE") | LVEF_PERCENT <= 35 ~ "<40/<=35"
-    )
-  )
-
-rsdata <- rsdata %>%
-  group_by(patientreference) %>%
-  arrange(indexdtm) %>%
-  mutate(across(all_of(c("LVEF_use", "LVEFcrt_tmp")), ~ zoo::na.locf(.x, na.rm = F), .names = "{.col}imp")) %>%
-  ungroup()
-
-rsdata <- rsdata %>%
-  mutate(
-    LVEF_use2 = coalesce(LVEF_useimp, LVEF_LOWEST_SEMIQUANTITATIVE),
-    ef_cat = factor(case_when(
-      LVEF_use2 %in% c("NORMAL", "MILD") ~ 1,
-      LVEF_use2 %in% c("MODERATE", "SEVERE") ~ 2
-    ), labels = c(">=40", "<40"), levels = 1:2),
-    ef_cat3 = factor(case_when(
-      LVEF_use2 %in% c("NORMAL") ~ 1,
-      LVEF_use2 %in% c("MILD") ~ 2,
-      LVEF_use2 %in% c("MODERATE", "SEVERE") ~ 3
-    ), labels = c("HFpEF", "HFmrEF", "HFrEF"), levels = 1:3),
-    LVEFcrt_tmp2 = coalesce(LVEFcrt_tmpimp, LVEF_LOWEST_SEMIQUANTITATIVE),
-    efcrt_cat = factor(case_when(
-      LVEFcrt_tmp2 %in% c(">=40/>35", "NORMAL", "MILD") ~ 1,
-      LVEFcrt_tmp2 %in% c("<40/<=35", "MODERATE", "SEVERE") ~ 2,
-    ), labels = c(">=40/>35", "<40/<=35"), levels = 1:2)
-  )
-
-rsdata <- rsdata %>%
-  mutate(
     indexyear = factor(year(indexdtm)),
     age = as.numeric(floor((indexdtm - DATE_OF_BIRTH) / 365.25)),
     age_cat = factor(
@@ -114,14 +71,27 @@ rsdata <- rsdata %>%
       hfdur == "LESS_THAN_6_MONTHS" ~ 1,
       hfdur == "MORE_THAN_6_MONTHS" ~ 2
     ), levels = 1:2, labels = c("HF duration < 6 mo at index", "HF duration \u2265 6 mo at index")),
+    # lowest registreras enbart vid index besöket (där locf inte kan ske per defintion) och efter ändring av cut-off
+    LVEF_SEMIQUANTITATIVE_tmp = coalesce(LVEF_SEMIQUANTITATIVE, LVEF_SEMIQUANTITATIVE_V2, LVEF_LOWEST_SEMIQUANTITATIVE),
+    LVEF_PERCENT_tmp = coalesce(LVEF_PERCENT, LVEF_LOWEST_PERCENT),
+    ef_cat3 = factor(case_when(
+      LVEF_SEMIQUANTITATIVE_tmp == "NORMAL" | LVEF_PERCENT_tmp >= 50 ~ 1,
+      LVEF_SEMIQUANTITATIVE_tmp == "MILD" |
+        (LVEF_PERCENT_tmp >= 40 & version_DIAGNOSTIC == "1.0.0" | LVEF_PERCENT_tmp >= 41 & version_DIAGNOSTIC == "2.0.0") ~ 2,
+      LVEF_SEMIQUANTITATIVE_tmp == "MODERATE" | LVEF_PERCENT_tmp >= 30 ~ 3,
+      LVEF_SEMIQUANTITATIVE_tmp == "SEVERE" | LVEF_PERCENT_tmp < 30 ~ 3
+    ), labels = c("HFpEF", "HFmrEF", "HFrEF"), levels = 1:3),
+    efcrt_cat = factor(case_when(
+      LVEF_SEMIQUANTITATIVE_tmp %in% c("NORMAL", "MILD") | LVEF_PERCENT_tmp > 35 ~ 1,
+      LVEF_SEMIQUANTITATIVE_tmp %in% c("MODERATE", "SEVERE") | LVEF_PERCENT_tmp <= 35 ~ 2
+    ), labels = c(">=40/>35", "<40/<=35"), levels = 1:2),
     FUNCTION_CLASS_NYHA = str_replace(FUNCTION_CLASS_NYHA, "NYHA_", " "),
     location = factor(case_when(
       vtype == "Primary care" ~ 3,
       PROCESS_DEFINITION_REFERENCE %in% c("IX_OV", "FO", "YFO") & vtype == "Hospital" ~ 2,
       PROCESS_DEFINITION_REFERENCE %in% c("IX_SV") ~ 1
-    ), levels = 1:3, labels = c("In-hospital", "Out-patient hosptial", "Primary care"))
+    ), levels = 1:3, labels = c("In-hospital", "Out-patient hospital", "Primary care"))
   )
-
 
 ynvars <- c(
   "EARLIER_CARDIAC_ARREST", "HYPERTENSION", "ATRIAL_FIBRILLATION_FLUTTER",
@@ -144,7 +114,7 @@ rsdata <- rsdata %>%
 rsdata <- rsdata %>%
   group_by(patientreference) %>%
   arrange(indexdtm) %>%
-  mutate(across(all_of(c("QRS_WIDTH", "LEFT_BRANCH_BLOCK", "EKG_RHYTHM", "hfdur")), ~ zoo::na.locf(.x, na.rm = F), .names = "{.col}imp")) %>%
+  mutate(across(all_of(c("QRS_WIDTH", "LEFT_BRANCH_BLOCK", "EKG_RHYTHM", "efcrt_cat", "ef_cat3", "hfdur")), ~ zoo::na.locf(.x, na.rm = F), .names = "{.col}imp")) %>%
   ungroup()
 
 

@@ -6,7 +6,7 @@ source(here::here("setup/setup.R"))
 
 ## Load data
 
-datapath <- "data/raw-data/20251125/export/"
+datapath <- "data/raw-data/20260115/export/"
 
 ### data
 newrs <- read_sas(paste0(datapath, "datauttag_arsrapport.sas7bdat"))

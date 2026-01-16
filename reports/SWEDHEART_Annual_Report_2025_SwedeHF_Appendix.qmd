@@ -59,11 +59,11 @@ load(here("data/clean-data/rsdata.RData"))
 
 # Information and explanations
 
-The information presented is based on data reported in SwedeHF until 24th November 2025 ÄNDRA TILL 14th of January 2026. 
+The information presented is based on data reported in SwedeHF until 14th of January 2026. 
 
 The presentation is based on the date of the patients visit/admission.
 
-Index is defined as the first time a patient is registered in SwedeHF, not necessarily with newly diagnosed heart failure. For the follow-up at 1-180 days after index the mean time from index was `r formatC(mean(rsdata %>% filter(ttype == "1-80 days follow-up", indexyear == global_year) %>% pull(diff_timeadmission), na.rm = T) / 30.5, format = "f", digits = 1, decimal.mark = ".")` during `r global_year`. 
+Index is defined as the first time a patient is registered in SwedeHF, not necessarily with newly diagnosed heart failure. For the follow-up at 1-180 days after index the mean time from index was `r formatC(mean(rsdata %>% filter(ttype == "1-80 days follow-up", indexyear == global_year) %>% pull(diff_timeadmission), na.rm = T) / 30.5, format = "f", digits = 1, decimal.mark = ".")` months during `r global_year`. 
 
 Yearly follow-up is divided into 1 year follow-up (from 6 months until 1.5 years after index), and 2+ years follow-up (from 1.5 years after index). The mean time from index until 1 year follow-up is 
 `r formatC(mean(rsdata %>% filter(ttype == "1 year follow-up", indexyear == global_year) %>% pull(diff_timeadmission), na.rm = T) / 365.25, format = "f", digits = 1, decimal.mark = ".")` years and for 2+ years follow-up

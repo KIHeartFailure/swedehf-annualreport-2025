@@ -59,7 +59,7 @@ stat2 <- stat2 %>%
 
 stat2 <- stat2 %>%
   mutate(
-    ntot = paste0(comma(n), " av ", comma(tot)),
+    ntot = paste0(n, " av ", tot),
     per = paste0(percent, "%"),
     per = if_else(tot < 10, "", per),
     ntot = if_else(tot < 10, "", ntot),
@@ -106,7 +106,7 @@ for (i in seq_along(bplace)) {
 levhf <- levels(stat2$hfdurimp)
 levhf <- str_replace(levhf, "mo at index", "mån vid index")
 
-legend("topright", levhf, fill = global_cols[c(1, 2)], border = global_cols[c(1, 2)], bty = "n", cex = cexmy)
+legend(33, 102.5, levhf, fill = global_cols[c(1, 2)], border = global_cols[c(1, 2)], bty = "n", cex = cexmy)
 
 axis(3,
   at = b,
