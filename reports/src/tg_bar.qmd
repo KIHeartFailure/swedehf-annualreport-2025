@@ -1,13 +1,8 @@
 ```{r}
-#| label: fig-tg
+#| label: tgfuncs
 #| cache: true
 #| cache.comments: false
-#| fig-cap: Coverage by county
-#| fig-subcap: !expr c(paste0("Prevalent (map), ", global_year), paste0("Incident (map), ", global_year - 1), paste0("Prevalent, ", global_year), paste0("Incident, ", global_year - 1))
-#| layout-ncol: 2
-#| layout-nrow: 2
-#| fig-height: 8
-#| fig-width: 7
+#| cache.lazy: false
 
 # Maps
 
@@ -43,26 +38,6 @@ map <- swedenmap %>%
   sf::st_as_sf()
 
 mapfig <- left_join(map, geo, by = c("NAME_1" = "county_map"))
-
-ggplot(mapfig %>% filter(typetg == "Prevalent"), aes(fill = p_cat)) +
-  geom_sf() +
-  theme_void() +
-  theme(
-    text = element_text(size = 20, face = "bold"),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  ) +
-  scale_fill_manual(values = c(global_cols, "lightgrey"))
-
-ggplot(mapfig %>% filter(typetg == "Incident"), aes(fill = p_cat)) +
-  geom_sf() +
-  theme_void() +
-  theme(
-    text = element_text(size = 20, face = "bold"),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  ) +
-  scale_fill_manual(values = c(global_cols, "lightgrey"))
 
 # Bars
 tgfunc <- function(tgtype, ttype = "county") {
@@ -137,9 +112,63 @@ tgfunc <- function(tgtype, ttype = "county") {
     labs(y = "Proportion (%)")
   p
 }
-
-tgfunc(tgtype = "Prevalent", ttype = "county")
-# tgfunc(tgtype = "Prevalent", ttype = "centre")
-tgfunc(tgtype = "Incident", ttype = "county")
-# tgfunc(tgtype = "Incident", ttype = "centre")
 ```
+
+:::: {#fig-tg layout-ncol=2 layout-nrow=2}
+::: {#fig-tg1}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+#| dependson: tgfuncs
+ggplot(mapfig %>% filter(typetg == "Prevalent"), aes(fill = p_cat)) +
+  geom_sf() +
+  theme_void() +
+  theme(
+    text = element_text(size = 20, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  ) +
+  scale_fill_manual(values = c(global_cols, "lightgrey"))
+```  
+`{r} paste0("Prevalent (map), ", global_year)`
+:::
+
+::: {#fig-tg2}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+#| dependson: tgfuncs
+
+ggplot(mapfig %>% filter(typetg == "Incident"), aes(fill = p_cat)) +
+  geom_sf() +
+  theme_void() +
+  theme(
+    text = element_text(size = 20, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  ) +
+  scale_fill_manual(values = c(global_cols, "lightgrey"))
+```  
+`{r} paste0("Incident (map), ", global_year - 1)`
+:::
+::: {#fig-tg3}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+#| dependson: tgfuncs
+tgfunc(tgtype = "Prevalent", ttype = "county")
+```  
+`{r} paste0("Prevalent, ", global_year)`
+:::
+
+::: {#fig-tg4}
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+#| dependson: tgfuncs
+tgfunc(tgtype = "Incident", ttype = "county")
+```  
+`{r} paste0("Incident, ", global_year - 1)`
+:::
+Coverage by county
+::::

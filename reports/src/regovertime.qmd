@@ -4,6 +4,7 @@
 #| label: regovertime
 #| fig-height: 6
 #| fig-width: 10
+#| cache.lazy: false
 
 tot <- rsdata %>%
   filter(indexyear %in% paste(seq((global_year - 7), global_year, 1))) %>%

@@ -52,7 +52,7 @@ source(here::here("setup/setup.R"))
 
 # load data
 load(here("data/clean-data/rsdata.RData"))
-# load(here("data/clean-data/tg.RData"))
+load(here("data/clean-data/tg.RData"))
 ```           
 
 \clearpage
@@ -95,7 +95,9 @@ registered in SwedeHF up to December of the year in question.
 
 **Denominator incident coverage:** Individuals registered with heart failure for the first time during the current year, either in SwedeHF or in the National Patient Register. The definition of heart failure in the National Patient Register is a diagnosis of heart failure (I11.0, I13.0, I13.2, I25.5, I42.0, I42.6, I42.7, I50.0, I50.1, I50.9) in main position twice with at least 14 days between and with $\ge$ 2 of the following medications: ACEI/ARB/ARNI, beta-blockers, MRA or Loop diuretics within $\pm$ 120 days. 
 
-TO BE ADDED MAY 2026.
+{{< include src/tg.qmd >}}
+
+{{< include src/tg_bar.qmd >}}
 
 \clearpage
 

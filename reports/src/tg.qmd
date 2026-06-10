@@ -1,10 +1,10 @@
+:::: {#fig-tgtime}
+
 ```{r}
-#| label: fig-tgtime
-#| cache: true
-#| cache.comments: false
-#| fig-cap: !expr paste0("Coverage, 2006-", global_year, " (prevalent)/", global_year -1 , " (incident)")
+#| label: tgtime
 #| fig-height: 6
 #| fig-width: 10
+#| cache.lazy: false
 
 p <- tg_overtime %>%
   ggplot(aes(x = year, y = tg, group = tgtype)) +
@@ -29,3 +29,7 @@ p <- tg_overtime %>%
 
 p
 ```
+
+`{r} paste0("Coverage, 2006-", global_year, " (prevalent)/", global_year -1 , " (incident)")`
+
+::::
